@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    API to collect lab data.
+Globals:
+  Function:
+    Runtime: python3.6 # language used at runtime
+    Timeout: 180 # timeout for a given lambda function execution
+    MemorySize: 512
+    Environment:
+        Variables: 
+          StudentLabDataBucket: !Ref StudentLabDataBucket
+
+Resources:
+
+    LabEventCollectorFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            CodeUri: venv/lib/python3.6/dist-packages
+            Handler: collect_event_function.lambda_handler
+            Policies:
+              - Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 's3:PutObject'
+                    Resource:
+                      Fn::Join: 
+                        - ""
+                        - 
+                          - "arn:aws:s3:::"
+                          - 
+                            !Ref StudentLabDataBucket
+                          - "/*"
+            Events:
+                LambdaMicroservice:
+                  Type: Api
+                  Properties:
+                    Path: /event
+                    Method: POST 
+                    
+    LabCodeCollectorFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            CodeUri: venv/lib/python3.6/dist-packages
+            Handler: collect_code_function.lambda_handler
+            Policies:
+              - Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - 's3:PutObject'
+                    Resource:
+                      Fn::Join: 
+                        - ""
+                        - 
+                          - "arn:aws:s3:::"
+                          - 
+                            !Ref StudentLabDataBucket
+                          - "/*"
+            Events:
+                LambdaMicroservice:
+                  Type: Api
+                  Properties:
+                    Path: /code
+                    Method: POST 
+                    
+    StudentLabDataBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+          VersioningConfiguration:
+            Status: Enabled
+        
+    LabCodeCollectorFunctionPermission:
+        Type: 'AWS::Lambda::Permission'
+        Properties:
+          Action: 'lambda:InvokeFunction'
+          FunctionName:
+            'Fn::GetAtt':
+              - LabCodeCollectorFunction
+              - Arn
+          Principal: apigateway.amazonaws.com
+          SourceArn:
+            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+
+    LabEventCollectorPermission:
+        Type: 'AWS::Lambda::Permission'
+        Properties:
+          Action: 'lambda:InvokeFunction'
+          FunctionName:
+            'Fn::GetAtt':
+              - LabEventCollectorFunction
+              - Arn
+          Principal: apigateway.amazonaws.com
+          SourceArn:
+            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+        
+Outputs:
+
+    LabEventCollectorApi:
+      Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
+      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
+
+    LabEventCollectorFunction:
+      Description: "LabEventCollectorFunction Lambda Function ARN"
+      Value: !GetAtt LabEventCollectorFunction.Arn
+

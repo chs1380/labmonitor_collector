@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API to collect lab data.
+
+  '
+Globals:
+  Function:
+    Environment:
+      Variables:
+        StudentLabDataBucket:
+          Ref: StudentLabDataBucket
+    MemorySize: 512
+    Runtime: python3.6
+    Timeout: 180
+Outputs:
+  LabEventCollectorApi:
+    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction
+      function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/
+  LabEventCollectorFunction:
+    Description: LabEventCollectorFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - LabEventCollectorFunction
+      - Arn
+Resources:
+  LabCodeCollectorFunction:
+    Properties:
+      CodeUri: s3://cywonglabcollectorsourcebucket/d749a120aa606a5c6625e717f4863d87
+      Events:
+        LambdaMicroservice:
+          Properties:
+            Method: POST
+            Path: /code
+          Type: Api
+      Handler: collect_code_function.lambda_handler
+      Policies:
+      - Statement:
+        - Action:
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: StudentLabDataBucket
+              - /*
+        Version: '2012-10-17'
+    Type: AWS::Serverless::Function
+  LabCodeCollectorFunctionPermission:
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - LabCodeCollectorFunction
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*
+    Type: AWS::Lambda::Permission
+  LabEventCollectorFunction:
+    Properties:
+      CodeUri: s3://cywonglabcollectorsourcebucket/d749a120aa606a5c6625e717f4863d87
+      Events:
+        LambdaMicroservice:
+          Properties:
+            Method: POST
+            Path: /event
+          Type: Api
+      Handler: collect_event_function.lambda_handler
+      Policies:
+      - Statement:
+        - Action:
+          - s3:PutObject
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: StudentLabDataBucket
+              - /*
+        Version: '2012-10-17'
+    Type: AWS::Serverless::Function
+  LabEventCollectorPermission:
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+        - LabEventCollectorFunction
+        - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*
+    Type: AWS::Lambda::Permission
+  StudentLabDataBucket:
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+    Type: AWS::S3::Bucket
+Transform: AWS::Serverless-2016-10-31
