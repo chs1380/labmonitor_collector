@@ -101,7 +101,6 @@ Outputs:
       Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
       Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
 
-    LabEventCollectorFunction:
-      Description: "LabEventCollectorFunction Lambda Function ARN"
-      Value: !GetAtt LabEventCollectorFunction.Arn
-
+    LabCodeCollectorApi:
+      Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
+      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/"
