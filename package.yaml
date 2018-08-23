@@ -74,7 +74,7 @@ Resources:
     Type: AWS::ApiGateway::ApiKey
   LabCodeCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/7c7259223794fd40f1d4865b13292b40
+      CodeUri: s3://cywonglabcollectorsourcebucket1/3bd97757e42a11b38360c78d00cbf6f9
       Events:
         LambdaMicroservice:
           Properties:
@@ -89,7 +89,8 @@ Resources:
         - Action:
           - apigateway:GET
           Effect: Allow
-          Resource: '*'
+          Resource:
+            Fn::Sub: arn:aws:apigateway:${AWS::Region}::/apikeys/*
         - Action:
           - s3:PutObject
           Effect: Allow
@@ -110,7 +111,7 @@ Resources:
     Type: AWS::Lambda::Permission
   LabEventCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/7c7259223794fd40f1d4865b13292b40
+      CodeUri: s3://cywonglabcollectorsourcebucket1/3bd97757e42a11b38360c78d00cbf6f9
       Events:
         LambdaMicroservice:
           Properties:
@@ -125,7 +126,8 @@ Resources:
         - Action:
           - apigateway:GET
           Effect: Allow
-          Resource: '*'
+          Resource:
+            Fn::Sub: arn:aws:apigateway:${AWS::Region}::/apikeys/*
         - Action:
           - s3:PutObject
           Effect: Allow

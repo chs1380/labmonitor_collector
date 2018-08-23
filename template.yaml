@@ -61,7 +61,8 @@ Resources:
                   - Effect: Allow
                     Action:
                       - apigateway:GET
-                    Resource: "*"
+                    Resource: 
+                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
                   - Effect: Allow
                     Action:
                       - s3:PutObject
@@ -86,7 +87,8 @@ Resources:
                   - Effect: Allow
                     Action:
                       - apigateway:GET
-                    Resource: "*"
+                    Resource: 
+                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
                   - Effect: Allow
                     Action:
                       - s3:PutObject
