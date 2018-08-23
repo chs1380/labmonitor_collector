@@ -20,9 +20,12 @@ Resources:
             info:
               title:
                 Ref: AWS::StackName
+            x-amazon-apigateway-api-key-source: "HEADER"
             paths:
               "/code":
                 post:
+                  security:
+                    - api_key: []
                   x-amazon-apigateway-integration:
                     httpMethod: POST
                     type: aws_proxy
@@ -32,13 +35,21 @@ Resources:
                   responses: {}
               "/event":
                 post:
+                  security:
+                    - api_key: []
                   x-amazon-apigateway-integration:
                     httpMethod: POST
                     type: aws_proxy
                     uri:
                       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
                   responses: {}
-                  
+            securityDefinitions:
+              api_key:
+                type: "apiKey"
+                name: "x-api-key"
+                in: "header"
+                
+
     LabEventCollectorFunction:
         Type: AWS::Serverless::Function 
         Properties:
@@ -49,15 +60,13 @@ Resources:
                 Statement:
                   - Effect: Allow
                     Action:
-                      - 's3:PutObject'
+                      - apigateway:GET
+                    Resource: "*"
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObject
                     Resource:
-                      Fn::Join: 
-                        - ""
-                        - 
-                          - "arn:aws:s3:::"
-                          - 
-                            !Ref StudentLabDataBucket
-                          - "/*"
+                      Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
             Events:
                 LambdaMicroservice:
                   Type: Api
@@ -65,7 +74,7 @@ Resources:
                     RestApiId: !Ref ApiGatewayApi
                     Path: /event
                     Method: POST 
-                    
+
     LabCodeCollectorFunction:
         Type: AWS::Serverless::Function 
         Properties:
@@ -76,15 +85,13 @@ Resources:
                 Statement:
                   - Effect: Allow
                     Action:
-                      - 's3:PutObject'
+                      - apigateway:GET
+                    Resource: "*"
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObject
                     Resource:
-                      Fn::Join: 
-                        - ""
-                        - 
-                          - "arn:aws:s3:::"
-                          - 
-                            !Ref StudentLabDataBucket
-                          - "/*"
+                      Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
             Events:
                 LambdaMicroservice:
                   Type: Api
@@ -126,7 +133,7 @@ Resources:
     StudentPlan:
       Type: AWS::ApiGateway::UsagePlan
       DependsOn:
-        - ApiGatewayApi
+        - ApiGatewayApiProdStage
       Properties:
         ApiStages:
           -
@@ -136,10 +143,15 @@ Resources:
         Quota:
           Limit: 50000
           Period: DAY
+        Throttle:
+          BurstLimit: 10
+          RateLimit: 1
         UsagePlanName: STUDENT        
 
     ApiKey: 
       Type: AWS::ApiGateway::ApiKey
+      DependsOn:
+        - ApiGatewayApiProdStage
       Properties: 
         Name: "TestApiKey"
         Description: "CloudFormation API Key V1"

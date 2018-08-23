@@ -33,6 +33,8 @@ Resources:
           /code:
             post:
               responses: {}
+              security:
+              - api_key: []
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 passthroughBehavior: when_no_match
@@ -42,15 +44,25 @@ Resources:
           /event:
             post:
               responses: {}
+              security:
+              - api_key: []
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
+        securityDefinitions:
+          api_key:
+            in: header
+            name: x-api-key
+            type: apiKey
         swagger: 2.0
+        x-amazon-apigateway-api-key-source: HEADER
       StageName: Prod
     Type: AWS::Serverless::Api
   ApiKey:
+    DependsOn:
+    - ApiGatewayApiProdStage
     Properties:
       Description: CloudFormation API Key V1
       Enabled: 'true'
@@ -62,7 +74,7 @@ Resources:
     Type: AWS::ApiGateway::ApiKey
   LabCodeCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/8c4cbfd706afcda598cf5b99ab0222f0
+      CodeUri: s3://cywonglabcollectorsourcebucket/7c7259223794fd40f1d4865b13292b40
       Events:
         LambdaMicroservice:
           Properties:
@@ -75,14 +87,14 @@ Resources:
       Policies:
       - Statement:
         - Action:
+          - apigateway:GET
+          Effect: Allow
+          Resource: '*'
+        - Action:
           - s3:PutObject
           Effect: Allow
           Resource:
-            Fn::Join:
-            - ''
-            - - 'arn:aws:s3:::'
-              - Ref: StudentLabDataBucket
-              - /*
+            Fn::Sub: arn:aws:s3:::${StudentLabDataBucket}/*
         Version: '2012-10-17'
     Type: AWS::Serverless::Function
   LabCodeCollectorFunctionPermission:
@@ -98,7 +110,7 @@ Resources:
     Type: AWS::Lambda::Permission
   LabEventCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/8c4cbfd706afcda598cf5b99ab0222f0
+      CodeUri: s3://cywonglabcollectorsourcebucket/7c7259223794fd40f1d4865b13292b40
       Events:
         LambdaMicroservice:
           Properties:
@@ -111,14 +123,14 @@ Resources:
       Policies:
       - Statement:
         - Action:
+          - apigateway:GET
+          Effect: Allow
+          Resource: '*'
+        - Action:
           - s3:PutObject
           Effect: Allow
           Resource:
-            Fn::Join:
-            - ''
-            - - 'arn:aws:s3:::'
-              - Ref: StudentLabDataBucket
-              - /*
+            Fn::Sub: arn:aws:s3:::${StudentLabDataBucket}/*
         Version: '2012-10-17'
     Type: AWS::Serverless::Function
   LabEventCollectorPermission:
@@ -139,7 +151,7 @@ Resources:
     Type: AWS::S3::Bucket
   StudentPlan:
     DependsOn:
-    - ApiGatewayApi
+    - ApiGatewayApiProdStage
     Properties:
       ApiStages:
       - ApiId:
@@ -149,6 +161,9 @@ Resources:
       Quota:
         Limit: 50000
         Period: DAY
+      Throttle:
+        BurstLimit: 10
+        RateLimit: 1
       UsagePlanName: STUDENT
     Type: AWS::ApiGateway::UsagePlan
   UsagePlanKey:
