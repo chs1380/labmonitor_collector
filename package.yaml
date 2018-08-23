@@ -12,26 +12,64 @@ Globals:
     Runtime: python3.6
     Timeout: 180
 Outputs:
+  LabCodeCollectorApi:
+    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction
+      function
+    Value:
+      Fn::Sub: https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/
   LabEventCollectorApi:
     Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction
       function
     Value:
-      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/
-  LabEventCollectorFunction:
-    Description: LabEventCollectorFunction Lambda Function ARN
-    Value:
-      Fn::GetAtt:
-      - LabEventCollectorFunction
-      - Arn
+      Fn::Sub: https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/
 Resources:
+  ApiGatewayApi:
+    Properties:
+      DefinitionBody:
+        info:
+          title:
+            Ref: AWS::StackName
+        paths:
+          /code:
+            post:
+              responses: {}
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabCodeCollectorFunction.Arn}/invocations
+          /event:
+            post:
+              responses: {}
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
+        swagger: 2.0
+      StageName: Prod
+    Type: AWS::Serverless::Api
+  ApiKey:
+    Properties:
+      Description: CloudFormation API Key V1
+      Enabled: 'true'
+      Name: TestApiKey
+      StageKeys:
+      - RestApiId:
+          Ref: ApiGatewayApi
+        StageName: Prod
+    Type: AWS::ApiGateway::ApiKey
   LabCodeCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/d749a120aa606a5c6625e717f4863d87
+      CodeUri: s3://cywonglabcollectorsourcebucket/8c4cbfd706afcda598cf5b99ab0222f0
       Events:
         LambdaMicroservice:
           Properties:
             Method: POST
             Path: /code
+            RestApiId:
+              Ref: ApiGatewayApi
           Type: Api
       Handler: collect_code_function.lambda_handler
       Policies:
@@ -60,12 +98,14 @@ Resources:
     Type: AWS::Lambda::Permission
   LabEventCollectorFunction:
     Properties:
-      CodeUri: s3://cywonglabcollectorsourcebucket/d749a120aa606a5c6625e717f4863d87
+      CodeUri: s3://cywonglabcollectorsourcebucket/8c4cbfd706afcda598cf5b99ab0222f0
       Events:
         LambdaMicroservice:
           Properties:
             Method: POST
             Path: /event
+            RestApiId:
+              Ref: ApiGatewayApi
           Type: Api
       Handler: collect_event_function.lambda_handler
       Policies:
@@ -97,4 +137,26 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
     Type: AWS::S3::Bucket
+  StudentPlan:
+    DependsOn:
+    - ApiGatewayApi
+    Properties:
+      ApiStages:
+      - ApiId:
+          Ref: ApiGatewayApi
+        Stage: Prod
+      Description: Student Plan 50000 requests per day
+      Quota:
+        Limit: 50000
+        Period: DAY
+      UsagePlanName: STUDENT
+    Type: AWS::ApiGateway::UsagePlan
+  UsagePlanKey:
+    Properties:
+      KeyId:
+        Ref: ApiKey
+      KeyType: API_KEY
+      UsagePlanId:
+        Ref: StudentPlan
+    Type: AWS::ApiGateway::UsagePlanKey
 Transform: AWS::Serverless-2016-10-31

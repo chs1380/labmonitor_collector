@@ -10,9 +10,35 @@ Globals:
     Environment:
         Variables: 
           StudentLabDataBucket: !Ref StudentLabDataBucket
-
 Resources:
-
+    ApiGatewayApi:
+      Type: AWS::Serverless::Api
+      Properties:
+        StageName: Prod
+        DefinitionBody:
+            swagger: 2.0
+            info:
+              title:
+                Ref: AWS::StackName
+            paths:
+              "/code":
+                post:
+                  x-amazon-apigateway-integration:
+                    httpMethod: POST
+                    type: aws_proxy
+                    passthroughBehavior: "when_no_match"
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabCodeCollectorFunction.Arn}/invocations
+                  responses: {}
+              "/event":
+                post:
+                  x-amazon-apigateway-integration:
+                    httpMethod: POST
+                    type: aws_proxy
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
+                  responses: {}
+                  
     LabEventCollectorFunction:
         Type: AWS::Serverless::Function 
         Properties:
@@ -36,6 +62,7 @@ Resources:
                 LambdaMicroservice:
                   Type: Api
                   Properties:
+                    RestApiId: !Ref ApiGatewayApi
                     Path: /event
                     Method: POST 
                     
@@ -62,6 +89,7 @@ Resources:
                 LambdaMicroservice:
                   Type: Api
                   Properties:
+                    RestApiId: !Ref ApiGatewayApi
                     Path: /code
                     Method: POST 
                     
@@ -94,13 +122,46 @@ Resources:
           Principal: apigateway.amazonaws.com
           SourceArn:
             'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
-        
+
+    StudentPlan:
+      Type: AWS::ApiGateway::UsagePlan
+      DependsOn:
+        - ApiGatewayApi
+      Properties:
+        ApiStages:
+          -
+            ApiId: !Ref 'ApiGatewayApi'
+            Stage: Prod
+        Description: Student Plan 50000 requests per day
+        Quota:
+          Limit: 50000
+          Period: DAY
+        UsagePlanName: STUDENT        
+
+    ApiKey: 
+      Type: AWS::ApiGateway::ApiKey
+      Properties: 
+        Name: "TestApiKey"
+        Description: "CloudFormation API Key V1"
+        Enabled: "true"
+        StageKeys: 
+          - RestApiId: 
+              Ref: "ApiGatewayApi"
+            StageName: "Prod"
+   
+    UsagePlanKey:
+      Type: AWS::ApiGateway::UsagePlanKey
+      Properties : 
+        KeyId: !Ref ApiKey
+        KeyType: API_KEY
+        UsagePlanId: !Ref StudentPlan 
+      
 Outputs:
 
     LabEventCollectorApi:
       Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
+      Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/event/"
 
     LabCodeCollectorApi:
       Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/"
+      Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/"
