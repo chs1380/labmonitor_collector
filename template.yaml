@@ -155,13 +155,13 @@ Resources:
       DependsOn:
         - ApiGatewayApiProdStage
       Properties: 
-        Name: "TestApiKey"
-        Description: "CloudFormation API Key V1"
+        Name: TeacherApiKey
+        Description: Teacher
         Enabled: "true"
         StageKeys: 
           - RestApiId: 
               Ref: "ApiGatewayApi"
-            StageName: "Prod"
+            StageName: Prod
    
     UsagePlanKey:
       Type: AWS::ApiGateway::UsagePlanKey
@@ -179,3 +179,9 @@ Outputs:
     LabCodeCollectorApi:
       Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
       Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/"
+      
+    StudentPlan:
+       Value: !Ref StudentPlan 
+       
+    StudentLabDataBucket:
+      Value: !Ref StudentLabDataBucket 
