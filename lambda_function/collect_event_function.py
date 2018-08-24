@@ -21,7 +21,7 @@ def respond(err, res=None):
 def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key=apiKey["name"]+'/event.json',
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event/"+ apiKey["name"] + '/eventstream.json',
               Body=event["body"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"

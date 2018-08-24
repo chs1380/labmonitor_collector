@@ -146,8 +146,8 @@ Resources:
           Limit: 50000
           Period: DAY
         Throttle:
-          BurstLimit: 10
-          RateLimit: 1
+          BurstLimit: 20
+          RateLimit: 10
         UsagePlanName: STUDENT        
 
     ApiKey: 
