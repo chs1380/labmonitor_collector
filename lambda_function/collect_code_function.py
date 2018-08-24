@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import tarfile,sys,shutil
 
 
 print('Loading function')
@@ -8,6 +9,35 @@ s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
 
 
+def untar(fname):
+    if (fname.endswith("tar")):
+        tar = tarfile.open(fname)
+        tar.extractall()
+        tar.close()
+        print("Extracted in Current Directory")
+    else:
+        print("Not a tar file: '%s '" % sys.argv[0])
+
+
+def setup_git():
+    targetDirectory = "/tmp/git/"
+    os.makedirs(targetDirectory, exist_ok=True)
+    
+    shutil.copyfile("git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
+    os.chdir(targetDirectory)
+    untar(os.path.join(targetDirectory, "git-2.4.3.tar"))
+    
+    GIT_TEMPLATE_DIR = os.path.join(targetDirectory, 'usr/share/git-core/templates');
+    GIT_EXEC_PATH = os.path.join(targetDirectory, 'usr/libexec/git-core');
+    LD_LIBRARY_PATH = os.path.join(targetDirectory, 'usr/lib64');
+    binPath = os.path.join(targetDirectory, 'usr/bin');
+    
+    os.environ['GIT_TEMPLATE_DIR'] = GIT_TEMPLATE_DIR
+    os.environ['GIT_EXEC_PATH'] = GIT_EXEC_PATH
+    os.environ['LD_LIBRARY_PATH'] =   os.environ['LD_LIBRARY_PATH'] + ":" + LD_LIBRARY_PATH if os.environ['LD_LIBRARY_PATH'] else LD_LIBRARY_PATH;
+    os.environ['PATH'] = os.environ['PATH'] + ":" + binPath
+            
+            
 def respond(err, res=None):
     return {
         'statusCode': '400' if err else '200',
@@ -31,4 +61,24 @@ def lambda_handler(event, context):
           )
           
     print(apiKey)
+    setup_git()
+    
+    os.system('git --version')
+    os.chdir("/tmp/")
+    os.system('git clone https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
+   
+    
+    
+    
+    code_file_path = "/tmp/ite3101_introduction_to_programming/lab/" + body["key"]
+    os.remove(code_file_path)
+    with open(code_file_path, "w+") as codefile:
+        codefile.write(body["code"])
+        
+    os.system("cat " + code_file_path)
+    
+    segment = body["key"].split("/")
+    test_result = os.popen('python -m unittest /tmp/ite3101_introduction_to_programming//test/' + segment[1] + "/test_"+ segment[2]).read()
+    
+    
     return respond(None, apiKey["name"])
