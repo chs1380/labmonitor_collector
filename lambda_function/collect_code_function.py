@@ -21,12 +21,6 @@ def untar(fname):
 
 def setup_git():
     targetDirectory = "/tmp/git/"
-    os.makedirs(targetDirectory, exist_ok=True)
-    
-    shutil.copyfile("git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
-    os.chdir(targetDirectory)
-    untar(os.path.join(targetDirectory, "git-2.4.3.tar"))
-    
     GIT_TEMPLATE_DIR = os.path.join(targetDirectory, 'usr/share/git-core/templates');
     GIT_EXEC_PATH = os.path.join(targetDirectory, 'usr/libexec/git-core');
     LD_LIBRARY_PATH = os.path.join(targetDirectory, 'usr/lib64');
@@ -36,7 +30,15 @@ def setup_git():
     os.environ['GIT_EXEC_PATH'] = GIT_EXEC_PATH
     os.environ['LD_LIBRARY_PATH'] =   os.environ['LD_LIBRARY_PATH'] + ":" + LD_LIBRARY_PATH if os.environ['LD_LIBRARY_PATH'] else LD_LIBRARY_PATH;
     os.environ['PATH'] = os.environ['PATH'] + ":" + binPath
-            
+    
+    if os.path.isdir("/tmp/git/"):
+        return
+    os.makedirs(targetDirectory)
+    
+    shutil.copyfile("git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
+    os.chdir(targetDirectory)
+    untar(os.path.join(targetDirectory, "git-2.4.3.tar"))
+    
             
 def respond(err, res=None):
     return {
@@ -49,6 +51,8 @@ def respond(err, res=None):
 
 
 def lambda_handler(event, context):
+    dirpath = os.getcwd()
+    print("current directory is : " + dirpath)
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
     body = json.loads(event["body"])
@@ -61,14 +65,16 @@ def lambda_handler(event, context):
           )
           
     print(apiKey)
+    
     setup_git()
     
     os.system('git --version')
     os.chdir("/tmp/")
-    os.system('git clone https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
+    
+    if os.path.isdir("/tmp/ite3101_introduction_to_programming"):
+        shutil.rmtree("/tmp/ite3101_introduction_to_programming")
+    os.system('git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
    
-    
-    
     
     code_file_path = "/tmp/ite3101_introduction_to_programming/lab/" + body["key"]
     os.remove(code_file_path)
@@ -78,7 +84,11 @@ def lambda_handler(event, context):
     os.system("cat " + code_file_path)
     
     segment = body["key"].split("/")
-    test_result = os.popen('python -m unittest /tmp/ite3101_introduction_to_programming//test/' + segment[1] + "/test_"+ segment[2]).read()
-    
+    os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
+
+    print(os.environ['PATH'])
+    os.chdir(dirpath)
+    os.system("ls -al awslambda")
+    test_result = os.popen('python awslambda/pytest.py /tmp/ite3101_introduction_to_programming//tests/' + segment[1] + "/test_"+ segment[2]).read()
     
     return respond(None, apiKey["name"])
