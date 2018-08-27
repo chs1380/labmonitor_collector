@@ -86,9 +86,7 @@ def lambda_handler(event, context):
     segment = body["key"].split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
 
-    print(os.environ['PATH'])
     os.chdir(dirpath)
-    os.system("ls -al awslambda")
-    test_result = os.popen('python awslambda/pytest.py /tmp/ite3101_introduction_to_programming//tests/' + segment[1] + "/test_"+ segment[2]).read()
-    
-    return respond(None, apiKey["name"])
+    test_result = os.popen('python pytest.py /tmp/ite3101_introduction_to_programming/tests/' + segment[1] + "/test_"+ segment[2]).read()
+    print(test_result)
+    return respond(None, test_result)
