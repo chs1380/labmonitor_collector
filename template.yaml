@@ -156,7 +156,7 @@ Resources:
         - ApiGatewayApiProdStage
       Properties: 
         Name: TeacherApiKey
-        Description: Teacher
+        Description: 000000000
         Enabled: "true"
         StageKeys: 
           - RestApiId: 

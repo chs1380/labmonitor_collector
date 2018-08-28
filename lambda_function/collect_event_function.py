@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import datetime
 
 
 print('Loading function')
@@ -21,7 +22,15 @@ def respond(err, res=None):
 def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event/"+ apiKey["name"] + '/eventstream.json',
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_by_id/"+ apiKey["name"] + '/eventstream.json',
+              Body=event["body"],
+              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+              ContentType="application/json"
+          )
+
+    now = datetime.datetime.now()
+    partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H/minute=%M/second=%S")
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_stream/"+ partition + '/id=' + apiKey["name"] + '/eventstream.json',
               Body=event["body"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"
