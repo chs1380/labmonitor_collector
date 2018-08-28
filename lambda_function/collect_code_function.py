@@ -8,6 +8,28 @@ print('Loading function')
 s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
 
+def lambda_handler(event, context):
+    dirpath = os.getcwd()
+    print("current directory is : " + dirpath)
+    apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
+    
+    body = json.loads(event["body"])
+    print(type(body))
+    print(body)
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + body["key"],
+              Body=body["code"],
+              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+              ContentType="application/json"
+          )
+          
+    print(apiKey)
+    setup_git()
+    clone_source()
+    overwrite_source_code(body)
+    test_result = run_unit_test(body, dirpath)
+    print(test_result)
+    return respond(None, {"test_result": test_result})
+
 
 def untar(fname):
     if (fname.endswith("tar")):
@@ -38,7 +60,29 @@ def setup_git():
     shutil.copyfile("git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
     os.chdir(targetDirectory)
     untar(os.path.join(targetDirectory, "git-2.4.3.tar"))
+    os.system('git --version')
     
+    
+def clone_source():
+    os.chdir("/tmp/")
+    if os.path.isdir("/tmp/ite3101_introduction_to_programming"):
+        shutil.rmtree("/tmp/ite3101_introduction_to_programming")
+    os.system('git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
+    
+    
+def overwrite_source_code(body):
+    code_file_path = "/tmp/ite3101_introduction_to_programming/lab/" + body["key"]
+    os.remove(code_file_path)
+    with open(code_file_path, "w+") as codefile:
+        codefile.write(body["code"])
+    os.system("cat " + code_file_path)
+    
+def run_unit_test(body, dirpath):
+    segment = body["key"].split("/")
+    os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
+    os.chdir(dirpath)
+    return os.popen('python pytest.py /tmp/ite3101_introduction_to_programming/tests/' + segment[1] + "/test_"+ segment[2]).read()
+            
             
 def respond(err, res=None):
     return {
@@ -50,43 +94,3 @@ def respond(err, res=None):
     }
 
 
-def lambda_handler(event, context):
-    dirpath = os.getcwd()
-    print("current directory is : " + dirpath)
-    apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
-    
-    body = json.loads(event["body"])
-    print(type(body))
-    print(body)
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + body["key"],
-              Body=body["code"],
-              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
-              ContentType="application/json"
-          )
-          
-    print(apiKey)
-    
-    setup_git()
-    
-    os.system('git --version')
-    os.chdir("/tmp/")
-    
-    if os.path.isdir("/tmp/ite3101_introduction_to_programming"):
-        shutil.rmtree("/tmp/ite3101_introduction_to_programming")
-    os.system('git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
-   
-    
-    code_file_path = "/tmp/ite3101_introduction_to_programming/lab/" + body["key"]
-    os.remove(code_file_path)
-    with open(code_file_path, "w+") as codefile:
-        codefile.write(body["code"])
-        
-    os.system("cat " + code_file_path)
-    
-    segment = body["key"].split("/")
-    os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
-
-    os.chdir(dirpath)
-    test_result = os.popen('python pytest.py /tmp/ite3101_introduction_to_programming/tests/' + segment[1] + "/test_"+ segment[2]).read()
-    print(test_result)
-    return respond(None, test_result)
