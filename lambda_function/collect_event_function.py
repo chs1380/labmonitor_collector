@@ -22,19 +22,25 @@ def respond(err, res=None):
 def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
+
+    
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_by_id/"+ apiKey["name"] + '/eventstream.json',
               Body=event["body"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"
           )
 
+    
     now = datetime.datetime.now()
     partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H/minute=%M/second=%S")
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_stream/"+ partition + '/id=' + apiKey["name"] + '/eventstream.json',
-              Body=event["body"],
-              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
-              ContentType="application/json"
-          )
+    
+    events = json.loads(event["body"])
+    for student_event in events:
+        s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key=f"event_stream/{partition}/id={apiKey['name']}/{student_event['name']}_{student_event['time']}.json",
+                  Body=json.dumps(student_event).encode('utf8'),
+                  Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+                  ContentType="application/json"
+              )
           
     print(apiKey)
     return respond(None, apiKey["name"])
