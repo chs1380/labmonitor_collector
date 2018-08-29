@@ -3,10 +3,11 @@ import json
 import os
 import tarfile,sys,shutil
 
-
 print('Loading function')
 s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
+
+SOURCE_RESPOSITORY_NAME = os.environ['SourceRespositoryName']
 
 def lambda_handler(event, context):
     dirpath = os.getcwd()
@@ -14,8 +15,6 @@ def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
     body = json.loads(event["body"])
-    print(type(body))
-    print(body)
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + body["key"],
               Body=body["code"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
@@ -23,6 +22,10 @@ def lambda_handler(event, context):
           )
           
     print(apiKey)
+    
+    if not str_to_bool(os.environ['RunUnitTest']):
+        return respond(None, {"test_result": "Run unittest is disabled."})
+        
     setup_git()
     clone_source()
     overwrite_source_code(body)
@@ -31,6 +34,15 @@ def lambda_handler(event, context):
     return respond(None, {"test_result": test_result})
 
 
+def str_to_bool(s):
+    if s == 'true':
+         return True
+    elif s == 'false':
+         return False
+    else:
+         raise ValueError
+         
+         
 def untar(fname):
     if (fname.endswith("tar")):
         tar = tarfile.open(fname)
@@ -65,13 +77,13 @@ def setup_git():
     
 def clone_source():
     os.chdir("/tmp/")
-    if os.path.isdir("/tmp/ite3101_introduction_to_programming"):
-        shutil.rmtree("/tmp/ite3101_introduction_to_programming")
-    os.system('git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git')
+    if os.path.isdir(f"/tmp/{SOURCE_RESPOSITORY_NAME}"):
+        shutil.rmtree(f"/tmp/{SOURCE_RESPOSITORY_NAME}")
+    os.system(os.environ['GitCommand'])
     
     
 def overwrite_source_code(body):
-    code_file_path = "/tmp/ite3101_introduction_to_programming/lab/" + body["key"]
+    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab/" + body["key"]
     os.remove(code_file_path)
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
@@ -81,7 +93,7 @@ def run_unit_test(body, dirpath):
     segment = body["key"].split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
     os.chdir(dirpath)
-    return os.popen('python pytest.py /tmp/ite3101_introduction_to_programming/tests/' + segment[1] + "/test_"+ segment[2]).read()
+    return os.popen(f'python pytest.py /tmp/{SOURCE_RESPOSITORY_NAME}/tests/' + segment[1] + "/test_"+ segment[2]).read()
             
             
 def respond(err, res=None):

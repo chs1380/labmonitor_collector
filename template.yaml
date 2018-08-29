@@ -2,6 +2,20 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
     API to collect lab data.
+Parameters:
+  SourceRespositoryName:
+    Type: String
+    Description: Git test source code respository name.
+  GitCommand: 
+    Type: String
+    Description: Git commands to clone the test code respository.
+  RunUnitTest:
+    Type: String
+    Default: true
+    AllowedValues: 
+      - true
+      - false
+    Description: Run pytest unittest or not.
 Globals:
   Function:
     Runtime: python3.6 # language used at runtime
@@ -10,6 +24,9 @@ Globals:
     Environment:
         Variables: 
           StudentLabDataBucket: !Ref StudentLabDataBucket
+          SourceRespositoryName: !Ref SourceRespositoryName
+          GitCommand: !Ref GitCommand
+          RunUnitTest: !Ref RunUnitTest
 Resources:
     ApiGatewayApi:
       Type: AWS::Serverless::Api
@@ -155,8 +172,8 @@ Resources:
       DependsOn:
         - ApiGatewayApiProdStage
       Properties: 
-        Name: TeacherApiKey
-        Description: 000000000
+        Name: "000000000"
+        Description: "000000000"
         Enabled: "true"
         StageKeys: 
           - RestApiId: 
