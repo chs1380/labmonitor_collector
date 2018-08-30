@@ -9,8 +9,8 @@ response = cloudformation.describe_stacks(
     StackName='labmonitor'
 )
 
-SEED = "Change it before generta API Key"
 usageplanIds = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "StudentPlan")
+SEED = usageplanIds #This ensure the it will not be the same for each stack.
 
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
 rel_path = 'Source.csv'
