@@ -15,7 +15,8 @@ def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
     body = json.loads(event["body"])
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + body["key"],
+    key = get_key(body)
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + key,
               Body=body["code"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"
@@ -33,6 +34,10 @@ def lambda_handler(event, context):
     print(test_result)
     return respond(None, {"test_result": test_result})
 
+
+def get_key(body):
+    return body["key"].replace("\\","/")
+    
 
 def str_to_bool(s):
     if s == 'true':
@@ -83,14 +88,14 @@ def clone_source():
     
     
 def overwrite_source_code(body):
-    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab/" + body["key"]
+    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab/" + get_key(body)
     os.remove(code_file_path)
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
     os.system("cat " + code_file_path)
     
 def run_unit_test(body, dirpath):
-    segment = body["key"].split("/")
+    segment = get_key(body).split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
     os.chdir(dirpath)
     return os.popen(f'python pytest.py /tmp/{SOURCE_RESPOSITORY_NAME}/tests/' + segment[1] + "/test_"+ segment[2]).read()
