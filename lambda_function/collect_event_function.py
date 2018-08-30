@@ -32,15 +32,20 @@ def lambda_handler(event, context):
 
     
     now = datetime.datetime.now()
-    partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H/minute=%M/second=%S")
+    partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H")
+    filename = now.strftime("events_%M_%S.json")
     
     events = json.loads(event["body"])
+    body = []
     for student_event in events:
-        s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key=f"event_stream/{partition}/id={apiKey['name']}/{student_event['name']}_{student_event['time']}.json",
-                  Body=json.dumps(student_event).encode('utf8'),
-                  Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
-                  ContentType="application/json"
-              )
-          
-    print(apiKey)
-    return respond(None, apiKey["name"])
+        student_event["ip"] = event["requestContext"]["identity"]["sourceIp"]
+        student_event["student"] = apiKey["description"]
+        body.append(json.dumps(student_event) )
+        
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], 
+            Key = f"event_stream/{partition}/id={apiKey['name']}/{filename}",
+            Body = '\n'.join(body).encode('utf8'),
+            ContentType = "application/json"
+          )
+   
+    return respond(None, apiKey["name"] + f" saved {len(events)} events.")

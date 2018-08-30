@@ -3,38 +3,38 @@ CREATE EXTERNAL TABLE `event_stream`(
   `y` int COMMENT 'from deserializer', 
   `dx` int COMMENT 'from deserializer', 
   `dy` int COMMENT 'from deserializer', 
-  `time` timestamp COMMENT 'from deserializer', 
+  `time` string COMMENT 'from deserializer', 
   `button` string COMMENT 'from deserializer', 
   `pressed` string COMMENT 'from deserializer', 
   `key` string COMMENT 'from deserializer', 
-  `name` string COMMENT 'from deserializer')
+  `name` string COMMENT 'from deserializer', 
+  `ip` string COMMENT 'from deserializer', 
+  `student` string COMMENT 'from deserializer')
 PARTITIONED BY ( 
   `year` string, 
   `month` string, 
   `day` string, 
   `hour` string, 
-  `minute` string, 
-  `second` string, 
   `id` string)
 ROW FORMAT SERDE 
   'org.openx.data.jsonserde.JsonSerDe' 
 WITH SERDEPROPERTIES ( 
-  'paths'='button,dx,dy,key,name,pressed,time,x,y') 
+  'paths'='button,dx,dy,ip,key,name,pressed,student,time,x,y') 
 STORED AS INPUTFORMAT 
   'org.apache.hadoop.mapred.TextInputFormat' 
 OUTPUTFORMAT 
   'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
 LOCATION
-  's3://labmonitor-studentlabdatabucket-uyspl1dq1nhv/event_stream'
+  's3://labmonitor-studentlabdatabucket-sczl4atfd5x8/event_stream'
 TBLPROPERTIES (
   'CrawlerSchemaDeserializerVersion'='1.0', 
   'CrawlerSchemaSerializerVersion'='1.0', 
-  'UPDATED_BY_CRAWLER'='Event', 
-  'averageRecordSize'='137', 
+  'UPDATED_BY_CRAWLER'='Events', 
+  'averageRecordSize'='212', 
   'classification'='json', 
   'compressionType'='none', 
   'objectCount'='1', 
-  'recordCount'='367', 
-  'sizeKey'='50695', 
-  'transient_lastDdlTime'='1535534157', 
+  'recordCount'='1002', 
+  'sizeKey'='213032', 
+  'transient_lastDdlTime'='1535592954', 
   'typeOfData'='file')
