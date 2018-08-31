@@ -24,6 +24,7 @@ Globals:
     Environment:
         Variables: 
           StudentLabDataBucket: !Ref StudentLabDataBucket
+          StudentMarkingBucket: !Ref StudentMarkingBucket
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
@@ -84,7 +85,8 @@ Resources:
                     Action:
                       - s3:PutObject
                     Resource:
-                      Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'   
             Events:
                 LambdaMicroservice:
                   Type: Api
@@ -110,7 +112,13 @@ Resources:
                     Action:
                       - s3:PutObject
                     Resource:
-                      Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObjectAcl
+                    Resource:
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
             Events:
                 LambdaMicroservice:
                   Type: Api
@@ -124,7 +132,15 @@ Resources:
         Properties:
           VersioningConfiguration:
             Status: Enabled
-        
+
+    StudentMarkingBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+          AccessControl: PublicRead
+          WebsiteConfiguration:
+            IndexDocument: index.html
+            ErrorDocument: error.html
+            
     LabCodeCollectorFunctionPermission:
         Type: 'AWS::Lambda::Permission'
         Properties:
@@ -287,3 +303,11 @@ Outputs:
       
     ApiKey:
       Value: !Ref ApiKey
+
+    WebsiteURL:
+      Value: !GetAtt [StudentMarkingBucket, WebsiteURL]
+      Description: URL for website hosted on S3
+    
+    S3BucketSecureURL:
+      Value: !Join ['', ['https://', !GetAtt [StudentMarkingBucket, DomainName]]]
+      Description: Name of S3 bucket to hold website content

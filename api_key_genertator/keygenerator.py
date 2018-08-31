@@ -9,8 +9,13 @@ response = cloudformation.describe_stacks(
     StackName='labmonitor'
 )
 
-usageplanIds = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "StudentPlan")
-SEED = usageplanIds #This ensure the it will not be the same for each stack.
+usageplan_ids = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "StudentPlan")
+lab_collector_api = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "LabCollectorApi")
+
+print("api\t\t"+lab_collector_api)
+print("usageplan_ids\t"+usageplan_ids)
+
+SEED = usageplan_ids #This ensure the it will not be the same for each stack.
 
 script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
 rel_path = 'Source.csv'
@@ -25,22 +30,21 @@ with open(abs_file_path) as csvfile:
         
 
 with open(abs_out_file_path, 'w') as csvfile:
-    fieldnames = ["Name","key","description","Enabled","usageplanIds"]
+    fieldnames = ["Name","key","description","Enabled","usageplan_ids"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
     writer.writeheader()
     for student in name_List:
-        
-        student["key"] = hashlib.sha224(student["ID"] + SEED).hexdigest()
-        student["description"] = student["CLASS"] + "-" + student["NAME"]
+        key_material = (student["ID"] + SEED).encode('utf-8')
+        student["key"] = hashlib.sha224(key_material).hexdigest()
+        student["description"] =  student["CLASS"] + "-" + student["NAME"]
         student["Name"] = student["ID"]
         student["Enabled"] = "TRUE"
-        student["usageplanIds"] = usageplanIds
+        student["usageplan_ids"] = usageplan_ids
         del student["NAME"]
         del student["ID"]
         del student["CLASS"]
         writer.writerow(student)
-        print(student)
 
 apigateway = boto3.client('apigateway')
 response = apigateway.import_api_keys(
@@ -49,4 +53,12 @@ response = apigateway.import_api_keys(
     failOnWarnings=True
 )
 
-print(response)
+print(response["ids"])
+
+for api_key_id in response["ids"]:
+    response = apigateway.create_usage_plan_key(
+        usagePlanId=usageplan_ids,
+        keyId=api_key_id,
+        keyType='API_KEY'
+    )
+    print(response)

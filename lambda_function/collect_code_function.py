@@ -17,10 +17,10 @@ def lambda_handler(event, context):
     body = json.loads(event["body"])
     key = get_key(body)
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="code/"+ apiKey["name"] + key,
-              Body=body["code"],
-              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
-              ContentType="application/json"
-          )
+                  Body=body["code"],
+                  Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+                  ContentType="application/json"
+                )
           
     print(apiKey)
     
@@ -32,7 +32,24 @@ def lambda_handler(event, context):
     overwrite_source_code(body)
     test_result = run_unit_test(body, dirpath)
     print(test_result)
-    return respond(None, {"test_result": test_result})
+    print(test_result.splitlines()[-1])
+    is_pass_all_tests = "failed" not in test_result.splitlines()[-1] #Last line.
+ 
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="test_result/"+ apiKey["name"] + key,
+                  Body=test_result,
+                  Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+                  ContentType="text/plain"
+            )
+            
+    if is_pass_all_tests:
+        s3.put_object(Bucket=os.environ['StudentMarkingBucket'], Key=""+ apiKey["name"] + key,
+              Body=test_result,
+              Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
+              ACL='public-read',
+              ContentType="text/plain"
+        )
+
+    return respond(None, {"test_result": test_result + "\n" + str(is_pass_all_tests)})
 
 
 def get_key(body):
