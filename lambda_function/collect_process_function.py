@@ -22,27 +22,28 @@ def respond(err, res=None):
 def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_by_id/"+ apiKey["name"] + '/eventstream.json',
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="process_by_id/"+ apiKey["name"] + '/processstream.json',
               Body=event["body"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"
           )
+
     
     now = datetime.datetime.now()
     partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H")
-    filename = now.strftime("events_%M_%S.json")
+    filename = now.strftime("processes_%M_%S.json")
     
-    events = json.loads(event["body"])
+    processes = json.loads(event["body"])
     body = []
-    for student_event in events:
+    for student_event in processes:
         student_event["ip"] = event["requestContext"]["identity"]["sourceIp"]
         student_event["student"] = apiKey["description"]
         body.append(json.dumps(student_event) )
         
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], 
-            Key = f"event_stream/{partition}/id={apiKey['name']}/{filename}",
+            Key = f"process_stream/{partition}/id={apiKey['name']}/{filename}",
             Body = '\n'.join(body).encode('utf8'),
             ContentType = "application/json"
           )
    
-    return respond(None, apiKey["name"] + f" saved {len(events)} events.")
+    return respond(None, os.environ['BlackListProcess'])

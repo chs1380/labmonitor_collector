@@ -16,6 +16,11 @@ Parameters:
       - true
       - false
     Description: Run pytest unittest or not.
+  BlackListProcess: 
+    Type: CommaDelimitedList
+    Default: ""
+    Description: Black List Process.
+    
 Globals:
   Function:
     Runtime: python3.6 # language used at runtime
@@ -28,6 +33,8 @@ Globals:
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
+          BlackListProcess: "iexplore.exe,MicrosoftEdgeCP.exe"
+          
 Resources:
     ApiGatewayApi:
       Type: AWS::Serverless::Api
@@ -60,6 +67,16 @@ Resources:
                     type: aws_proxy
                     uri:
                       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
+                  responses: {}
+              "/process":
+                post:
+                  security:
+                    - api_key: []
+                  x-amazon-apigateway-integration:
+                    httpMethod: POST
+                    type: aws_proxy
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
                   responses: {}
             securityDefinitions:
               api_key:
@@ -126,7 +143,40 @@ Resources:
                     RestApiId: !Ref ApiGatewayApi
                     Path: /code
                     Method: POST 
-                    
+
+
+    LabProcessCollectorFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            CodeUri: venv/lib/python3.6/dist-packages
+            Handler: collect_process_function.lambda_handler
+            Policies:
+              - Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - apigateway:GET
+                    Resource: 
+                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObject
+                    Resource:
+                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                  - Effect: Allow
+                    Action:
+                      - s3:PutObjectAcl
+                    Resource:
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+            Events:
+                LambdaMicroservice:
+                  Type: Api
+                  Properties:
+                    RestApiId: !Ref ApiGatewayApi
+                    Path: /process
+                    Method: POST 
+                                        
     StudentLabDataBucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -165,6 +215,19 @@ Resources:
           SourceArn:
             'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
 
+
+    LabProcessCollectorPermission:
+        Type: 'AWS::Lambda::Permission'
+        Properties:
+          Action: 'lambda:InvokeFunction'
+          FunctionName:
+            'Fn::GetAtt':
+              - LabProcessCollectorFunction
+              - Arn
+          Principal: apigateway.amazonaws.com
+          SourceArn:
+            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+            
     StudentPlan:
       Type: AWS::ApiGateway::UsagePlan
       DependsOn:
