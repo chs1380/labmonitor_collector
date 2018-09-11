@@ -78,6 +78,27 @@ Resources:
                     uri:
                       Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
                   responses: {}
+              "/progress/{studentId}/{lab}":
+                get:
+                  parameters:
+                    - in: path
+                      name: studentId
+                      schema:
+                        type: integer
+                      required: true
+                      description: Student ID
+                    - in: path
+                      name: lab
+                      schema:
+                        type: integer
+                      required: true
+                      description: lab number
+                  x-amazon-apigateway-integration:
+                    httpMethod: POST
+                    type: aws_proxy
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
+                  responses: {}
             securityDefinitions:
               api_key:
                 type: "apiKey"
@@ -176,7 +197,39 @@ Resources:
                     RestApiId: !Ref ApiGatewayApi
                     Path: /process
                     Method: POST 
-                                        
+
+
+    CheckProgessFunction:
+        Type: AWS::Serverless::Function 
+        Properties:
+            CodeUri: venv/lib/python3.6/dist-packages
+            Handler: check_progress.lambda_handler
+            Policies:
+              - Version: '2012-10-17'
+                Statement:
+                  - Effect: Allow
+                    Action:
+                      - apigateway:GET
+                    Resource: 
+                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                  - Effect: Allow
+                    Action:
+                      - s3:GetObject
+                    Resource:
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                  - Effect: Allow
+                    Action:
+                      - s3:ListObjects
+                    Resource:
+                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+            Events:
+                LambdaMicroservice:
+                  Type: Api
+                  Properties:
+                    RestApiId: !Ref ApiGatewayApi
+                    Path: /progress/{studentId}/{lab}
+                    Method: GET
+                    
     StudentLabDataBucket:
         Type: AWS::S3::Bucket
         Properties:
@@ -217,6 +270,18 @@ Resources:
 
 
     LabProcessCollectorPermission:
+        Type: 'AWS::Lambda::Permission'
+        Properties:
+          Action: 'lambda:InvokeFunction'
+          FunctionName:
+            'Fn::GetAtt':
+              - LabProcessCollectorFunction
+              - Arn
+          Principal: apigateway.amazonaws.com
+          SourceArn:
+            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+
+    CheckProgessFunctionPermission:
         Type: 'AWS::Lambda::Permission'
         Properties:
           Action: 'lambda:InvokeFunction'
