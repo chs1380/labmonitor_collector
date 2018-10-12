@@ -1,5 +1,5 @@
-npm uninstall -g aws-sam-local
-sudo rm $(which sam)
+sudo yum -y update
+sudo yum -y install aws-cli
 pip install --user aws-sam-cli
 alias sam=~/.local/bin/sam
 sam --version
