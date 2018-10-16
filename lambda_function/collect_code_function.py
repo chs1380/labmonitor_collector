@@ -99,17 +99,18 @@ def setup_git():
     
 def clone_source():
     os.chdir("/tmp/")
+    print("clone_source ->"+ str(os.path.isdir(f"/tmp/{SOURCE_RESPOSITORY_NAME}")))
     if os.path.isdir(f"/tmp/{SOURCE_RESPOSITORY_NAME}"):
         shutil.rmtree(f"/tmp/{SOURCE_RESPOSITORY_NAME}")
     os.system(os.environ['GitCommand'])
     
     
 def overwrite_source_code(body):
-    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab/" + get_key(body)
+    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab_checker/" + get_key(body)
     os.remove(code_file_path)
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
-    os.system("cat " + code_file_path)
+        
     
 def run_unit_test(body, dirpath):
     segment = get_key(body).split("/")
