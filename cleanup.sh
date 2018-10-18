@@ -1,4 +1,3 @@
-
 StudentMarkingBucket=$(aws cloudformation describe-stacks --stack-name assignmentmonitor \
 --query 'Stacks[0].Outputs[?OutputKey==`StudentMarkingBucket`].OutputValue' --output text)
 StudentLabDataBucket=$(aws cloudformation describe-stacks --stack-name assignmentmonitor \

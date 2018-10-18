@@ -41,69 +41,71 @@ Resources:
       Properties:
         StageName: Prod
         DefinitionBody:
-            swagger: 2.0
-            info:
-              title:
-                Ref: AWS::StackName
-            x-amazon-apigateway-api-key-source: "HEADER"
-            paths:
-              "/code":
-                post:
-                  security:
-                    - api_key: []
-                  x-amazon-apigateway-integration:
-                    httpMethod: POST
-                    type: aws_proxy
-                    passthroughBehavior: "when_no_match"
-                    uri:
-                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabCodeCollectorFunction.Arn}/invocations
-                  responses: {}
-              "/event":
-                post:
-                  security:
-                    - api_key: []
-                  x-amazon-apigateway-integration:
-                    httpMethod: POST
-                    type: aws_proxy
-                    uri:
-                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
-                  responses: {}
-              "/process":
-                post:
-                  security:
-                    - api_key: []
-                  x-amazon-apigateway-integration:
-                    httpMethod: POST
-                    type: aws_proxy
-                    uri:
-                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
-                  responses: {}
-              "/progress/{studentId}/{lab}":
-                get:
-                  parameters:
-                    - in: path
-                      name: studentId
-                      schema:
-                        type: integer
-                      required: true
-                      description: Student ID
-                    - in: path
-                      name: lab
-                      schema:
-                        type: integer
-                      required: true
-                      description: lab number
-                  x-amazon-apigateway-integration:
-                    httpMethod: POST
-                    type: aws_proxy
-                    uri:
-                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
-                  responses: {}
-            securityDefinitions:
+          openapi: 3.0.0
+          info:
+            title:
+              Ref: 'AWS::StackName'
+            version: '1.0'
+          x-amazon-apigateway-api-key-source: HEADER
+          paths:
+            /code:
+              post:
+                security:
+                  - api_key: []
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  passthroughBehavior: when_no_match
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabCodeCollectorFunction.Arn}/invocations
+                responses: {}
+            /event:
+              post:
+                security:
+                  - api_key: []
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabEventCollectorFunction.Arn}/invocations
+                responses: {}
+            /process:
+              post:
+                security:
+                  - api_key: []
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
+                responses: {}
+            '/progress/{studentId}/{lab}':
+              get:
+                parameters:
+                  - in: path
+                    name: studentId
+                    schema:
+                      type: string
+                    required: true
+                    description: Student ID
+                  - in: path
+                    name: lab
+                    schema:
+                      type: string
+                    required: true
+                    description: lab number
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
+                responses: {}
+          components:
+            securitySchemes:
               api_key:
-                type: "apiKey"
-                name: "x-api-key"
-                in: "header"
+                type: apiKey
+                name: x-api-key
+                in: header
                 
 
     LabEventCollectorFunction:

@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     studentId = event['pathParameters']['studentId']
     lab =  event['pathParameters']['lab']
     lab = '{:02d}'.format(int(lab))
-    prefix = f"{studentId}/lab{lab}"  
+    prefix = f"{studentId}/{lab}"  
     
     get_filename = lambda key : os.path.split(key['Key'])[1]
     listing = list(map(lambda key: {'file': get_filename(key), 'time': key['LastModified'].strftime('%Y-%m-%d %H:%M:%S')}, 
