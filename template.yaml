@@ -310,7 +310,7 @@ Resources:
         Throttle:
           BurstLimit: 20
           RateLimit: 10
-        UsagePlanName: STUDENT        
+        UsagePlanName: !Ref AWS::StackName        
 
     ApiKey: 
       Type: AWS::ApiGateway::ApiKey

@@ -6,7 +6,7 @@ import boto3
 
 cloudformation = boto3.client('cloudformation')
 response = cloudformation.describe_stacks(
-    StackName='labmonitor'
+    StackName='assignmentmonitor'
 )
 
 usageplan_ids = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "StudentPlan")
