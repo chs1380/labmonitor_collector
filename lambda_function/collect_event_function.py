@@ -22,7 +22,8 @@ def respond(err, res=None):
 def lambda_handler(event, context):
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     
-    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_by_id/"+ apiKey["name"] + '/eventstream.json',
+    student_id = apiKey["name"].split("_")[0]
+    s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="event_by_id/"+ student_id + '/eventstream.json',
               Body=event["body"],
               Metadata={"ip":event["requestContext"]["identity"]["sourceIp"], },
               ContentType="application/json"
@@ -45,4 +46,4 @@ def lambda_handler(event, context):
             ContentType = "application/json"
           )
    
-    return respond(None, apiKey["name"] + f" saved {len(events)} events.")
+    return respond(None, student_id + f" saved {len(events)} events.")
