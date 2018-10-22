@@ -418,8 +418,8 @@ Resources:
       Type: AWS::Athena::NamedQuery
       Properties:
         Database: !Ref DatabaseEvents
-        Description: "Student keyboard streams."
-        Name: "StudentKeyboardStream"
+        Description: !Sub ${AWS::StackName} Student Keyboard Stream
+        Name: !Sub ${AWS::StackName} Student Keyboard Stream
         QueryString: !Sub >
                       SELECT distinct(id), array_agg(key) 
                       FROM "studentevents${AWS::StackName}"."event_stream" 
