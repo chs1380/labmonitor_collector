@@ -2,7 +2,7 @@ import csv
 import os
 import boto3
 
-stackname='labmonitor'
+stackname='assignmentmonitor'
 
 script_dir = os.path.dirname(__file__) 
 rel_path = 'Source.csv'

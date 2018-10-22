@@ -3,7 +3,7 @@ import os
 import hashlib
 import boto3
 
-stackname='labmonitor'
+stackname='assignmentmonitor'
 
 cloudformation = boto3.client('cloudformation')
 response = cloudformation.describe_stacks(

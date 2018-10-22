@@ -5,4 +5,4 @@ StudentLabDataBucket=$(aws cloudformation describe-stacks --stack-name assignmen
 aws s3 rm s3://$StudentMarkingBucket  --recursive
 aws s3 rm s3://$StudentLabDataBucket  --recursive
 sleep 10
-aws cloudformation delete-stack --stack-name labmonitor
+aws cloudformation delete-stack --stack-name assignmentmonitor
