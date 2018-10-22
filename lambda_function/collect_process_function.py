@@ -42,7 +42,7 @@ def lambda_handler(event, context):
         body.append(json.dumps(student_event) )
         
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], 
-            Key = f"process_stream/{partition}/id={apiKey['name']}/{filename}",
+            Key = f"process_stream/{partition}/id={student_id}/{filename}",
             Body = '\n'.join(body).encode('utf8'),
             ContentType = "application/json"
           )
