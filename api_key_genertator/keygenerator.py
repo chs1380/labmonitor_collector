@@ -3,10 +3,11 @@ import os
 import hashlib
 import boto3
 
+stackname='labmonitor'
 
 cloudformation = boto3.client('cloudformation')
 response = cloudformation.describe_stacks(
-    StackName='labmonitor'
+    StackName=stackname
 )
 
 usageplan_ids = next(x["OutputValue"] for x in response["Stacks"][0]["Outputs"] if x["OutputKey"] == "StudentPlan")
@@ -38,7 +39,7 @@ with open(abs_out_file_path, 'w') as csvfile:
         key_material = (student["ID"] + SEED).encode('utf-8')
         student["key"] = hashlib.sha224(key_material).hexdigest()
         student["description"] =  student["CLASS"] + "-" + student["NAME"]
-        student["Name"] = student["ID"]
+        student["Name"] = student["ID"] + "_" +stackname
         student["Enabled"] = "TRUE"
         student["usageplan_ids"] = usageplan_ids
         del student["NAME"]

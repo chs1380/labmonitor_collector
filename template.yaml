@@ -332,7 +332,7 @@ Resources:
       DependsOn:
         - ApiGatewayApiProdStage
       Properties: 
-        Name: "000000000"
+        Name: !Sub 000000000_${AWS::StackName}
         Description: "000000000"
         Enabled: "true"
         StageKeys: 
@@ -352,7 +352,7 @@ Resources:
       Properties:
         CatalogId: !Ref AWS::AccountId
         DatabaseInput:
-          Name: studentevents
+          Name: !Sub studentevents${AWS::StackName}
           Description: Student Event Stream
 
     TableEvents:
@@ -420,9 +420,9 @@ Resources:
         Database: !Ref DatabaseEvents
         Description: "Student keyboard streams."
         Name: "StudentKeyboardStream"
-        QueryString: >
+        QueryString: !Sub >
                       SELECT distinct(id), array_agg(key) 
-                      FROM "studentevents"."event_stream" 
+                      FROM "studentevents${AWS::StackName}"."event_stream" 
                       WHERE name='KeyPressEvent' 
                       GROUP BY id;
                       
