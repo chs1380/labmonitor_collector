@@ -4,7 +4,7 @@ cp lambda_function/* venv/lib/python3.6/dist-packages
 rm package.yaml
 sam package --template-file template.yaml --s3-bucket $sourcebucket --output-template-file package.yaml
 
-aws cloudformation deploy --stack-name labmonitor --template-file package.yaml --capabilities CAPABILITY_IAM \
+aws cloudformation deploy --stack-name testmonitor --template-file package.yaml --capabilities CAPABILITY_IAM \
 --parameter-overrides \
     RunUnitTest="true" \
     GitCommand="git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git" \

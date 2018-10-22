@@ -79,6 +79,16 @@ Resources:
                   uri:
                     Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
                 responses: {}
+            /screenshot:
+              post:
+                security:
+                  - api_key: []
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabScreenshotCollectorFunction.Arn}/invocations
+                responses: {}                
             '/progress/{studentId}/{lab}':
               get:
                 parameters:
@@ -248,7 +258,36 @@ Resources:
                     RestApiId: !Ref ApiGatewayApi
                     Path: /progress/{studentId}/{lab}
                     Method: GET
-                    
+
+    LabScreenshotCollectorFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: venv/lib/python3.6/dist-packages
+        Handler: collect_screenshot_function.lambda_handler
+        Policies:
+        - Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - apigateway:GET
+            Resource:
+              Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+          - Effect: Allow
+            Action:
+              - s3:PutObjectAcl
+            Resource:
+                - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+            Action:
+              - s3:*
+            Resource: '*'
+        Events:
+          LambdaMicroservice:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /screenshot
+              Method: POST
+              
     StudentLabDataBucket:
         Type: AWS::S3::Bucket
 
