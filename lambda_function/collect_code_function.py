@@ -109,8 +109,7 @@ def overwrite_source_code(body):
     os.remove(code_file_path)
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
-    os.system("cat " + code_file_path)
-    
+
 def run_unit_test(body, dirpath):
     segment = get_key(body).split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
