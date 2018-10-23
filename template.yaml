@@ -333,7 +333,6 @@ Resources:
     StudentMarkingBucket:
         Type: AWS::S3::Bucket
         Properties:
-          # BucketName: !Sub ${AWS::StackName}StudentMarking
           AccessControl: PublicRead
           WebsiteConfiguration:
             IndexDocument: index.html
