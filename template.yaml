@@ -302,7 +302,11 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
-              Resource: !Sub "arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}"
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: "*"
         Environment:
           Variables:
             ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
