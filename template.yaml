@@ -80,7 +80,7 @@ Resources:
                     Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
                 responses: {}
             /screenshot:
-              post:
+              get:
                 security:
                   - api_key: []
                 x-amazon-apigateway-integration:
@@ -134,130 +134,128 @@ Resources:
                 in: header
 
     LabEventCollectorFunction:
-        Type: AWS::Serverless::Function 
-        Properties:
-            CodeUri: venv/lib/python3.6/dist-packages
-            Handler: collect_event_function.lambda_handler
-            Policies:
-              - Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - apigateway:GET
-                    Resource: 
-                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-                  - Effect: Allow
-                    Action:
-                      - s3:PutObject
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'   
-            Events:
-                LambdaMicroservice:
-                  Type: Api
-                  Properties:
-                    RestApiId: !Ref ApiGatewayApi
-                    Path: /event
-                    Method: POST 
+      Type: AWS::Serverless::Function 
+      Properties:
+          CodeUri: venv/lib/python3.6/dist-packages
+          Handler: collect_event_function.lambda_handler
+          Policies:
+            - Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - apigateway:GET
+                  Resource: 
+                    Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'   
+          Events:
+              LambdaMicroservice:
+                Type: Api
+                Properties:
+                  RestApiId: !Ref ApiGatewayApi
+                  Path: /event
+                  Method: POST 
 
     LabCodeCollectorFunction:
-        Type: AWS::Serverless::Function 
-        Properties:
-            CodeUri: venv/lib/python3.6/dist-packages
-            Handler: collect_code_function.lambda_handler
-            MemorySize: 2048
-            Policies:
-              - AWSCodeCommitReadOnly
-              - Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - apigateway:GET
-                    Resource: 
-                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-                  - Effect: Allow
-                    Action:
-                      - s3:PutObject
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-                  - Effect: Allow
-                    Action:
-                      - s3:PutObjectAcl
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-            Events:
-                LambdaMicroservice:
-                  Type: Api
-                  Properties:
-                    RestApiId: !Ref ApiGatewayApi
-                    Path: /code
-                    Method: POST 
-
+      Type: AWS::Serverless::Function 
+      Properties:
+          CodeUri: venv/lib/python3.6/dist-packages
+          Handler: collect_code_function.lambda_handler
+          MemorySize: 2048
+          Policies:
+            - AWSCodeCommitReadOnly
+            - Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - apigateway:GET
+                  Resource: 
+                    Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                - Effect: Allow
+                  Action:
+                    - s3:PutObjectAcl
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+          Events:
+              LambdaMicroservice:
+                Type: Api
+                Properties:
+                  RestApiId: !Ref ApiGatewayApi
+                  Path: /code
+                  Method: POST 
 
     LabProcessCollectorFunction:
-        Type: AWS::Serverless::Function 
-        Properties:
-            CodeUri: venv/lib/python3.6/dist-packages
-            Handler: collect_process_function.lambda_handler
-            Policies:
-              - Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - apigateway:GET
-                    Resource: 
-                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-                  - Effect: Allow
-                    Action:
-                      - s3:PutObject
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-                  - Effect: Allow
-                    Action:
-                      - s3:PutObjectAcl
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-            Events:
-                LambdaMicroservice:
-                  Type: Api
-                  Properties:
-                    RestApiId: !Ref ApiGatewayApi
-                    Path: /process
-                    Method: POST 
-
+      Type: AWS::Serverless::Function 
+      Properties:
+          CodeUri: venv/lib/python3.6/dist-packages
+          Handler: collect_process_function.lambda_handler
+          Policies:
+            - Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - apigateway:GET
+                  Resource: 
+                    Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                - Effect: Allow
+                  Action:
+                    - s3:PutObjectAcl
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+          Events:
+              LambdaMicroservice:
+                Type: Api
+                Properties:
+                  RestApiId: !Ref ApiGatewayApi
+                  Path: /process
+                  Method: POST 
 
     CheckProgessFunction:
-        Type: AWS::Serverless::Function 
-        Properties:
-            CodeUri: venv/lib/python3.6/dist-packages
-            Handler: check_progress.lambda_handler
-            Policies:
-              - Version: '2012-10-17'
-                Statement:
-                  - Effect: Allow
-                    Action:
-                      - apigateway:GET
-                    Resource: 
-                      Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-                  - Effect: Allow
-                    Action:
-                      - s3:GetObject
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-                  - Effect: Allow
-                    Action:
-                      - s3:ListObjects
-                    Resource:
-                        - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-            Events:
-                LambdaMicroservice:
-                  Type: Api
-                  Properties:
-                    RestApiId: !Ref ApiGatewayApi
-                    Path: /progress/{studentId}/{lab}
-                    Method: GET
+      Type: AWS::Serverless::Function 
+      Properties:
+          CodeUri: venv/lib/python3.6/dist-packages
+          Handler: check_progress.lambda_handler
+          Policies:
+            - Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - apigateway:GET
+                  Resource: 
+                    Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+                - Effect: Allow
+                  Action:
+                    - s3:GetObject
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+                - Effect: Allow
+                  Action:
+                    - s3:ListObjects
+                  Resource:
+                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+          Events:
+              LambdaMicroservice:
+                Type: Api
+                Properties:
+                  RestApiId: !Ref ApiGatewayApi
+                  Path: /progress/{studentId}/{lab}
+                  Method: GET
 
     LabScreenshotCollectorFunction:
       Type: AWS::Serverless::Function
@@ -265,89 +263,86 @@ Resources:
         CodeUri: venv/lib/python3.6/dist-packages
         Handler: collect_screenshot_function.lambda_handler
         Policies:
-        - Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - apigateway:GET
-            Resource:
-              Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-          - Effect: Allow
-            Action:
-              - s3:PutObjectAcl
-            Resource:
-                - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-            Action:
-              - s3:*
-            Resource: '*'
+          - AWSLambdaExecute # Managed Policy
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - apigateway:GET
+              Resource:
+                Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+            - Effect: Allow
+              Action:
+                - s3:PutObjectAcl
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+              Action:
+                - s3:*
+        Environment:
+          Variables:
+            StudentScreenShotBucket: !Ref StudentScreenShotBucket                
         Events:
           LambdaMicroservice:
             Type: Api
             Properties:
               RestApiId: !Ref ApiGatewayApi
               Path: /screenshot
-              Method: POST
-              
+              Method: GET
+    
+    ProcessScreenshotFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: venv/lib/python3.6/dist-packages
+        Handler: process_screenshot_function.lambda_handler
+        Policies:
+          - AWSLambdaExecute
+          - AmazonRekognitionReadOnlyAccess
+          - Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub "arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}"
+        Environment:
+          Variables:
+            ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
+        Events:
+          ScreenshotUpload:
+            Type: S3
+            Properties:
+              Bucket: !Ref StudentScreenShotBucket
+              Events: s3:ObjectCreated:*
+              Filter: 
+                S3Key:
+                  Rules:
+                    - Name: prefix
+                      Value: "screenshot/"
+                    - Name: suffix
+                      Value: ".jpg"
+          
     StudentLabDataBucket:
+        Type: AWS::S3::Bucket
+          
+    StudentScreenShotBucket:
         Type: AWS::S3::Bucket
 
     StudentMarkingBucket:
         Type: AWS::S3::Bucket
         Properties:
+          # BucketName: !Sub ${AWS::StackName}StudentMarking
           AccessControl: PublicRead
           WebsiteConfiguration:
             IndexDocument: index.html
             ErrorDocument: error.html
-            
-    LabCodeCollectorFunctionPermission:
-        Type: 'AWS::Lambda::Permission'
-        Properties:
-          Action: 'lambda:InvokeFunction'
-          FunctionName:
-            'Fn::GetAtt':
-              - LabCodeCollectorFunction
-              - Arn
-          Principal: apigateway.amazonaws.com
-          SourceArn:
-            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
 
-    LabEventCollectorPermission:
-        Type: 'AWS::Lambda::Permission'
+    ScreenshotMetaDataTable:
+        Type: AWS::Serverless::SimpleTable
         Properties:
-          Action: 'lambda:InvokeFunction'
-          FunctionName:
-            'Fn::GetAtt':
-              - LabEventCollectorFunction
-              - Arn
-          Principal: apigateway.amazonaws.com
-          SourceArn:
-            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
-
-
-    LabProcessCollectorPermission:
-        Type: 'AWS::Lambda::Permission'
-        Properties:
-          Action: 'lambda:InvokeFunction'
-          FunctionName:
-            'Fn::GetAtt':
-              - LabProcessCollectorFunction
-              - Arn
-          Principal: apigateway.amazonaws.com
-          SourceArn:
-            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
-
-    CheckProgessFunctionPermission:
-        Type: 'AWS::Lambda::Permission'
-        Properties:
-          Action: 'lambda:InvokeFunction'
-          FunctionName:
-            'Fn::GetAtt':
-              - LabProcessCollectorFunction
-              - Arn
-          Principal: apigateway.amazonaws.com
-          SourceArn:
-            'Fn::Sub': 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
-            
+          TableName: !Sub ScreenShotMetaData${AWS::StackName}
+          PrimaryKey:
+            Name: id
+            Type: String            
+        
     StudentPlan:
       Type: AWS::ApiGateway::UsagePlan
       DependsOn:
@@ -457,8 +452,8 @@ Resources:
       Type: AWS::Athena::NamedQuery
       Properties:
         Database: !Ref DatabaseEvents
-        Description: "Student keyboard streams."
-        Name: "StudentKeyboardStream"
+        Description: !Sub ${AWS::StackName} Student Keyboard Stream
+        Name: !Sub ${AWS::StackName} Student Keyboard Stream
         QueryString: !Sub >
                       SELECT distinct(id), array_agg(key) 
                       FROM "studentevents${AWS::StackName}"."event_stream" 
