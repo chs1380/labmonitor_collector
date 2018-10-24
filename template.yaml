@@ -30,6 +30,7 @@ Globals:
         Variables: 
           StudentLabDataBucket: !Ref StudentLabDataBucket
           StudentMarkingBucket: !Ref StudentMarkingBucket
+          ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
@@ -126,6 +127,37 @@ Resources:
                         type: "string"
                       Access-Control-Allow-Origin:
                         type: "string"
+            '/screenshottext/{studentId}':
+              get:
+                parameters:
+                  - in: path
+                    name: studentId
+                    schema:
+                      type: string
+                    required: true
+                    description: Student ID
+                x-amazon-apigateway-integration:
+                  httpMethod: POST
+                  type: aws_proxy
+                  uri:
+                    Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckScreenShotTextFunction.Arn}/invocations
+                  responses: 
+                    "default":
+                      statusCode: "200"
+                      responseParameters:
+                        method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+                        method.response.header.Access-Control-Allow-Methods : "'*'"
+                        method.response.header.Access-Control-Allow-Origin : "'*'"
+                responses: 
+                  "200":
+                    description: Default response for CORS method
+                    headers:
+                      Access-Control-Allow-Headers:
+                        type: "string"
+                      Access-Control-Allow-Methods:
+                        type: "string"
+                      Access-Control-Allow-Origin:
+                        type: "string"                        
           components:
             securitySchemes:
               api_key:
@@ -229,34 +261,54 @@ Resources:
     CheckProgessFunction:
       Type: AWS::Serverless::Function 
       Properties:
-          CodeUri: venv/lib/python3.6/dist-packages
-          Handler: check_progress.lambda_handler
-          Policies:
-            - Version: '2012-10-17'
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - apigateway:GET
-                  Resource: 
-                    Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-                - Effect: Allow
-                  Action:
-                    - s3:GetObject
-                  Resource:
-                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-                - Effect: Allow
-                  Action:
-                    - s3:ListObjects
-                  Resource:
-                      - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-          Events:
-              LambdaMicroservice:
-                Type: Api
-                Properties:
-                  RestApiId: !Ref ApiGatewayApi
-                  Path: /progress/{studentId}/{lab}
-                  Method: GET
+        CodeUri: venv/lib/python3.6/dist-packages
+        Handler: check_progress_function.lambda_handler
+        Policies:
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                Resource: 
+                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+              - Effect: Allow
+                Action:
+                  - s3:ListObjects
+                Resource:
+                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+        Events:
+            LambdaMicroservice:
+              Type: Api
+              Properties:
+                RestApiId: !Ref ApiGatewayApi
+                Path: /progress/{studentId}/{lab}
+                Method: GET
 
+    CheckScreenShotTextFunction:
+      Type: AWS::Serverless::Function 
+      Properties:
+        CodeUri: venv/lib/python3.6/dist-packages
+        Handler: check_screenshot_function.lambda_handler
+        Policies:
+          - Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable} 
+        Events:
+            LambdaMicroservice:
+              Type: Api
+              Properties:
+                RestApiId: !Ref ApiGatewayApi
+                Path: /screenshottext/{studentId}
+                Method: GET
+                  
     LabScreenshotCollectorFunction:
       Type: AWS::Serverless::Function
       Properties:
@@ -307,9 +359,6 @@ Resources:
               Action:
                 - s3:GetObject
               Resource: "*"
-        Environment:
-          Variables:
-            ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
         Events:
           ScreenshotUpload:
             Type: S3
