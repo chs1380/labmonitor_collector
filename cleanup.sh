@@ -1,8 +1,13 @@
-StudentMarkingBucket=$(aws cloudformation describe-stacks --stack-name testmonitor \
+stackname=testmonitor
+
+StudentMarkingBucket=$(aws cloudformation describe-stacks --stack-name $stackname \
 --query 'Stacks[0].Outputs[?OutputKey==`StudentMarkingBucket`].OutputValue' --output text)
-StudentLabDataBucket=$(aws cloudformation describe-stacks --stack-name testmonitor \
+StudentLabDataBucket=$(aws cloudformation describe-stacks --stack-name $stackname \
 --query 'Stacks[0].Outputs[?OutputKey==`StudentLabDataBucket`].OutputValue' --output text)
+StudentScreenShotBucket=$(aws cloudformation describe-stacks --stack-name $stackname \
+--query 'Stacks[0].Outputs[?OutputKey==`StudentScreenShotBucket`].OutputValue' --output text)
 aws s3 rm s3://$StudentMarkingBucket  --recursive
 aws s3 rm s3://$StudentLabDataBucket  --recursive
+aws s3 rm s3://$StudentScreenShotBucket  --recursive
 sleep 10
-aws cloudformation delete-stack --stack-name testmonitor
+aws cloudformation delete-stack --stack-name $stackname

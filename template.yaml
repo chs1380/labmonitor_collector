@@ -534,6 +534,9 @@ Outputs:
     StudentMarkingBucket:
       Value: !Ref StudentMarkingBucket
       
+    StudentScreenShotBucket:
+      Value: !Ref StudentScreenShotBucket
+      
     ApiKey:
       Value: !Ref ApiKey
 
