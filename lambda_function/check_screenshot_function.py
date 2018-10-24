@@ -7,7 +7,7 @@ import json
 
 
 print('Loading function')
-dynamodb = boto3.resource('dynamodb')
+dynamodb_client = boto3.client('dynamodb')
 
 def respond(err, res=None):
     return {
@@ -23,17 +23,17 @@ def respond(err, res=None):
 
 def lambda_handler(event, context):
     db = os.environ['ScreenshotMetaDataTable']
-    table = dynamodb.Table(os.environ['ScreenshotMetaDataTable'])
     student_id = event['pathParameters']['studentId']
+    
+    response = dynamodb_client.get_item(
+        TableName=os.environ['ScreenshotMetaDataTable'],
+        Key={'id': {"S": str(student_id)}})
 
-    now = datetime.datetime.now()
-    partition = now.strftime("%Y/%m/%d/%H/%M")
-    id = f"{student_id}-{partition}"
-    print(str(id))
-    response = table.get_item(Key={'id': str(id)})
     if "Item" not in response:
         return respond(None, {})
-    response['Item']['Text'] = json.loads(response['Item']['DetectedText'])
-    del response['Item']['DetectedText']
-    return respond(None, response['Item'])
+    
+    data = json.loads(response['Item']['DetectedText']['S'])
+    texts = list(map(lambda x: {"DetectedText": x["DetectedText"], "Type":x["Type"],"Confidence": x["Confidence"] }, data))  
+
+    return respond(None, texts)
     

@@ -38,6 +38,11 @@ def lambda_handler(event, context):
         db_response = table.put_item(
            Item=data
         )
+        id = student_id
+        data ={"id": id, "DetectedText": json.dumps(detected_text)}
+        db_response = table.put_item(
+           Item=data
+        )        
         print("PutItem succeeded:")
                 
        
