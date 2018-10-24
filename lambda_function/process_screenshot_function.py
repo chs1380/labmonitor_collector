@@ -25,7 +25,16 @@ def lambda_handler(event, context):
             response = rekognition_client.detect_text(Image={'Bytes': image.read()})
      
         detected_text = response['TextDetections']
-        data ={"id": key, "DetectedText": json.dumps(detected_text)}
+        segment = key.split("/")
+        student_id =segment[5].split("=")[1]
+        year = segment[1].split("=")[1]
+        month =  segment[2].split("=")[1]
+        day =  segment[3].split("=")[1]
+        hour =  segment[4].split("=")[1]
+        minuite = segment[6].split("_")[1]
+        
+        id = f"{student_id}-{year}/{month}/{day}/{hour}/{minuite}"
+        data ={"id": id, "DetectedText": json.dumps(detected_text)}
         db_response = table.put_item(
            Item=data
         )
