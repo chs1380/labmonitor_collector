@@ -15,6 +15,8 @@ def respond(err, res=None):
         'body': err.message if err else json.dumps(res),
         'headers': {
             'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin' : '*',
+            'Access-Control-Allow-Credentials' : 'true'
         },
     }
 
@@ -31,5 +33,7 @@ def lambda_handler(event, context):
     response = table.get_item(Key={'id': str(id)})
     if "Item" not in response:
         return respond(None, {})
+    response['Item']['Text'] = json.loads(response['Item']['DetectedText'])
+    del response['Item']['DetectedText']
     return respond(None, response['Item'])
     
