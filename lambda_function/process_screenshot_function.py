@@ -7,7 +7,7 @@ import json
 
 rekognition_client = boto3.client('rekognition', region_name='us-east-1')
 dynamodb = boto3.resource('dynamodb')
-s3_client = boto3.client('s3')
+s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
     db = os.environ['ScreenshotMetaDataTable']
@@ -17,10 +17,10 @@ def lambda_handler(event, context):
         bucket = record['s3']['bucket']['name']
         key = record['s3']['object']['key']
 
-        download_path = '/tmp/{}.jpg'.format(uuid.uuid4())
+        download_path = '/tmp/{}.jpeg'.format(uuid.uuid4())
         
         key = urllib.parse.unquote(key)
-        s3_client.download_file(bucket, key, download_path)
+        s3.download_file(bucket, key, download_path)
         with open(download_path, 'rb') as image:
             response = rekognition_client.detect_text(Image={'Bytes': image.read()})
      
@@ -42,7 +42,15 @@ def lambda_handler(event, context):
         data ={"id": id, "DetectedText": json.dumps(detected_text)}
         db_response = table.put_item(
            Item=data
-        )        
-        print("PutItem succeeded:")
+        )
+        
+        copy_source = {
+            'Bucket': bucket,
+            'Key': key,
+            
+        }
+        s3.copy_object(CopySource=copy_source,Bucket=os.environ['StudentMarkingBucket'],Key=f"Screenshot/{student_id}.jpeg",ContentType='image/jpeg')
+
+        print("PutItem and copy object succeeded!")
                 
        

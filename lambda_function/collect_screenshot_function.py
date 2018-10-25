@@ -25,12 +25,11 @@ def lambda_handler(event, context):
 
     now = datetime.datetime.now()
     partition = now.strftime("year=%Y/month=%m/day=%d/hour=%H")
-    filename = now.strftime("Screenshot_%M_%S.jpg")
+    filename = now.strftime("Screenshot_%M_%S.jpeg")
 
     bucket = os.environ['StudentScreenShotBucket']
     key = f"screenshot/{partition}/id={student_id}/{filename}"
    
-
     conditions = [
         ['content-length-range', 0, 3000000]
     ]
