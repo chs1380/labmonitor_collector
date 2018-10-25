@@ -4,11 +4,20 @@ import sys
 import uuid
 import urllib.parse
 import json
+from PIL import Image
+import PIL.Image
 
 rekognition_client = boto3.client('rekognition', region_name='us-east-1')
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
 
+def top(image_path, saved_location):
+    with Image.open(image_path) as image_obj:
+        width, height = image_obj.size
+        cropped_image = image_obj.crop((width - 200, 0, width, 200))
+        cropped_image.save(saved_location)
+
+    
 def lambda_handler(event, context):
     db = os.environ['ScreenshotMetaDataTable']
     table = dynamodb.Table(os.environ['ScreenshotMetaDataTable'])
@@ -21,7 +30,10 @@ def lambda_handler(event, context):
         
         key = urllib.parse.unquote(key)
         s3.download_file(bucket, key, download_path)
-        with open(download_path, 'rb') as image:
+        
+        top(download_path, '/tmp/cropped.jpg')
+        
+        with open('/tmp/cropped.jpg', 'rb') as image:
             response = rekognition_client.detect_text(Image={'Bytes': image.read()})
      
         detected_text = response['TextDetections']

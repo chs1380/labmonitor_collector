@@ -32,8 +32,10 @@ def lambda_handler(event, context):
     if "Item" not in response:
         return respond(None, {})
     
+    
     data = json.loads(response['Item']['DetectedText']['S'])
-    texts = list(map(lambda x: {"DetectedText": x["DetectedText"], "Type":x["Type"],"Confidence": x["Confidence"] }, data))  
+    line_data = filter(lambda x: x["Type"] == "LINE", data)
+    texts = list(map(lambda x: {"DetectedText": x["DetectedText"]}, line_data))  
 
     return respond(None, texts)
     
