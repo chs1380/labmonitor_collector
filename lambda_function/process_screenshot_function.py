@@ -46,10 +46,14 @@ def lambda_handler(event, context):
         
         copy_source = {
             'Bucket': bucket,
-            'Key': key,
-            
+            'Key': key
         }
-        s3.copy_object(CopySource=copy_source,Bucket=os.environ['StudentMarkingBucket'],Key=f"Screenshot/{student_id}.jpeg",ContentType='image/jpeg')
+    
+        s3.copy_object( CopySource=copy_source,
+                        Bucket=os.environ['StudentMarkingBucket'],
+                        Key=f"Screenshot/{student_id}.jpeg",
+                        MetadataDirective='REPLACE',
+                        ContentType='image/jpeg')
 
         print("PutItem and copy object succeeded!")
                 

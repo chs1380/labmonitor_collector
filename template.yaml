@@ -391,6 +391,15 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: error.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - "*"
+            MaxAge: "3000"
 
   StudentMarkingBucketPolicy:
     Type: AWS::S3::BucketPolicy
