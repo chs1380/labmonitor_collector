@@ -20,22 +20,37 @@ def respond(err, res=None):
         },
     }
 
+def get_result(student_id:str, task:str):
+    id = student_id + "-" + task    
+    return dynamodb_client.get_item(
+                TableName=os.environ['ScreenshotMetaDataTable'],
+                Key={'id': {"S": str(id)}})   
 
 def lambda_handler(event, context):
     db = os.environ['ScreenshotMetaDataTable']
     student_id = event['pathParameters']['studentId']
     
-    response = dynamodb_client.get_item(
-        TableName=os.environ['ScreenshotMetaDataTable'],
-        Key={'id': {"S": str(student_id)}})
-
-    if "Item" not in response:
-        return respond(None, {})
+    text = get_result(student_id, "TextDetections")
+    moderation = get_result(student_id, "ModerationLabels")
+    celebrity = get_result(student_id, "CelebrityFaces")
     
+    print(text)
+    print(moderation)
+    print(celebrity)
     
-    data = json.loads(response['Item']['DetectedText']['S'])
-    line_data = filter(lambda x: x["Type"] == "LINE", data)
-    texts = list(map(lambda x: {"DetectedText": x["DetectedText"]}, line_data))  
+    texts = []
+    moderations = []
+    celebrities = []
+    if "Item" in text:
+        data = json.loads(text['Item']['DetectedText']['S'])
+        line_data = filter(lambda x: x["Type"] == "LINE", data)
+        texts = list(map(lambda x: {"DetectedText": x["DetectedText"]}, line_data))
+    if "Item" in moderation:
+        moderations = json.loads(moderation['Item']['ModerationLabels']['S'])
+    if "Item" in celebrity:
+        celebrities = json.loads(celebrity['Item']['CelebrityFaces']['S'])
+        celebrities = list(map(lambda x: {"Name": x["Name"],"Urls":x["Urls"]}, celebrities))
 
-    return respond(None, texts)
+    result = {'texts': texts,'moderation': moderations, "celebrity": celebrities }
+    return respond(None, result)
     

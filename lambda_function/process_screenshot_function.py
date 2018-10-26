@@ -17,26 +17,29 @@ def top(image_path, saved_location):
         cropped_image = image_obj.crop((width - 200, 0, width, 200))
         cropped_image.save(saved_location)
 
+
+def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
+    id = f"{student_id}-{task}-{suffix}"
+    item ={"id": id, key: json.dumps(data)}
+    table = dynamodb.Table(os.environ['ScreenshotMetaDataTable'])
+    db_response = table.put_item(
+       Item=item
+    )
+    id = f"{student_id}-{task}"
+    item ={"id": id, key: json.dumps(data)}
+    db_response = table.put_item(
+       Item=item
+    )
     
 def lambda_handler(event, context):
     db = os.environ['ScreenshotMetaDataTable']
-    table = dynamodb.Table(os.environ['ScreenshotMetaDataTable'])
+
     
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']
         key = record['s3']['object']['key']
-
-        download_path = '/tmp/{}.jpeg'.format(uuid.uuid4())
-        
         key = urllib.parse.unquote(key)
-        s3.download_file(bucket, key, download_path)
-        
-        top(download_path, '/tmp/cropped.jpg')
-        
-        with open('/tmp/cropped.jpg', 'rb') as image:
-            response = rekognition_client.detect_text(Image={'Bytes': image.read()})
-     
-        detected_text = response['TextDetections']
+
         segment = key.split("/")
         student_id =segment[5].split("=")[1]
         year = segment[1].split("=")[1]
@@ -44,17 +47,29 @@ def lambda_handler(event, context):
         day =  segment[3].split("=")[1]
         hour =  segment[4].split("=")[1]
         minuite = segment[6].split("_")[1]
+        suffix = f"{year}/{month}/{day}/{hour}/{minuite}"
         
-        id = f"{student_id}-{year}/{month}/{day}/{hour}/{minuite}"
-        data ={"id": id, "DetectedText": json.dumps(detected_text)}
-        db_response = table.put_item(
-           Item=data
-        )
-        id = student_id
-        data ={"id": id, "DetectedText": json.dumps(detected_text)}
-        db_response = table.put_item(
-           Item=data
-        )
+        download_path = '/tmp/{}.jpeg'.format(uuid.uuid4())
+        s3.download_file(bucket, key, download_path)
+        
+        top(download_path, '/tmp/cropped.jpg')
+        
+        with open('/tmp/cropped.jpg', 'rb') as image:
+            response = rekognition_client.detect_text(Image={'Bytes': image.read()})
+            detected_text = response['TextDetections']
+        with open(download_path, 'rb') as image:
+            response = rekognition_client.detect_moderation_labels(Image={'Bytes': image.read()})
+            moderation_labels = response['ModerationLabels']
+        with open(download_path, 'rb') as image:
+            response = rekognition_client.recognize_celebrities(Image={'Bytes': image.read()})
+            celebrities = response['CelebrityFaces']
+
+        print(detected_text)
+        print(moderation_labels)
+        print(celebrities)
+        save_to_dyanmodb(student_id, "TextDetections", "DetectedText", suffix, detected_text)
+        save_to_dyanmodb(student_id, "ModerationLabels", "ModerationLabels", suffix, moderation_labels)
+        save_to_dyanmodb(student_id, "CelebrityFaces", "CelebrityFaces", suffix, celebrities)
         
         copy_source = {
             'Bucket': bucket,

@@ -127,7 +127,7 @@ Resources:
                       type: "string"
                     Access-Control-Allow-Origin:
                       type: "string"
-          '/screenshottext/{studentId}':
+          '/screenshot/{studentId}':
             get:
               parameters:
                 - in: path
@@ -140,7 +140,7 @@ Resources:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckScreenShotTextFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckScreenShotFunction.Arn}/invocations
                 responses: 
                   "default":
                     statusCode: "200"
@@ -289,7 +289,7 @@ Resources:
               Path: /progress/{studentId}/{lab}
               Method: GET
 
-  CheckScreenShotTextFunction:
+  CheckScreenShotFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: venv/lib/python3.6/dist-packages
@@ -306,7 +306,7 @@ Resources:
             Type: Api
             Properties:
               RestApiId: !Ref ApiGatewayApi
-              Path: /screenshottext/{studentId}
+              Path: /screenshot/{studentId}
               Method: GET
                 
   LabScreenshotCollectorFunction:
