@@ -25,11 +25,19 @@ def lambda_handler(event, context):
     bucket = os.environ['StudentMarkingBucket']
     
     studentId = event['pathParameters']['studentId']
-    lab =  event['pathParameters']['lab']
-    lab = '{:02d}'.format(int(lab))
-    prefix = f"{studentId}/lab{lab}"  
+  
+    if 'lab' in event['pathParameters']:
+        lab =  event['pathParameters']['lab']
+        lab = '{:02d}'.format(int(lab))
+        prefix = f"{studentId}/lab{lab}"  
+    else:
+        prefix = f"{studentId}/lab"  
     
-    get_filename = lambda key : os.path.split(key['Key'])[1]
-    listing = list(map(lambda key: {'file': get_filename(key), 'time': key['LastModified'].strftime('%Y-%m-%d %H:%M:%S')}, 
-                    s3.list_objects_v2(Bucket=bucket, Prefix=prefix)['Contents']))
-    return respond(None, listing)
+    try:
+        get_filename = lambda key : os.path.split(key['Key'])[1] if 'lab' in event['pathParameters'] else key['Key'].replace(studentId + "/","")
+        listing = list(map(lambda key: {'file': get_filename(key), 'time': key['LastModified'].strftime('%Y-%m-%d %H:%M:%S')}, 
+                        s3.list_objects_v2(Bucket=bucket, Prefix=prefix)['Contents']))
+        return respond(None, listing)
+    except:
+        return respond(None, [])
+        

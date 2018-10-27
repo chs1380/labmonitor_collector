@@ -90,6 +90,21 @@ Resources:
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabScreenshotCollectorFunction.Arn}/invocations
               responses: {}                
+          '/progress/{studentId}':
+            get:
+              parameters:
+                - in: path
+                  name: studentId
+                  schema:
+                    type: string
+                  required: true
+                  description: Student ID
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
+              responses: {}
           '/progress/{studentId}/{lab}':
             get:
               parameters:
@@ -103,30 +118,14 @@ Resources:
                   name: lab
                   schema:
                     type: string
-                  required: true
+                  required: false
                   description: lab number
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
-                responses: 
-                  "default":
-                    statusCode: "200"
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
-                      method.response.header.Access-Control-Allow-Methods : "'*'"
-                      method.response.header.Access-Control-Allow-Origin : "'*'"
-              responses: 
-                "200":
-                  description: Default response for CORS method
-                  headers:
-                    Access-Control-Allow-Headers:
-                      type: "string"
-                    Access-Control-Allow-Methods:
-                      type: "string"
-                    Access-Control-Allow-Origin:
-                      type: "string"
+              responses: {}
           '/screenshot/{studentId}':
             get:
               parameters:
@@ -141,23 +140,7 @@ Resources:
                 type: aws_proxy
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckScreenShotFunction.Arn}/invocations
-                responses: 
-                  "default":
-                    statusCode: "200"
-                    responseParameters:
-                      method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
-                      method.response.header.Access-Control-Allow-Methods : "'*'"
-                      method.response.header.Access-Control-Allow-Origin : "'*'"
-              responses: 
-                "200":
-                  description: Default response for CORS method
-                  headers:
-                    Access-Control-Allow-Headers:
-                      type: "string"
-                    Access-Control-Allow-Methods:
-                      type: "string"
-                    Access-Control-Allow-Origin:
-                      type: "string"                        
+              responses: {} 
         components:
           securitySchemes:
             api_key:
@@ -282,12 +265,18 @@ Resources:
               Resource:
                   - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
       Events:
-          LambdaMicroservice:
+          LambdaMicroservice1:
             Type: Api
             Properties:
               RestApiId: !Ref ApiGatewayApi
               Path: /progress/{studentId}/{lab}
               Method: GET
+          LambdaMicroservice2:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /progress/{studentId}
+              Method: GET              
 
   CheckScreenShotFunction:
     Type: AWS::Serverless::Function 
@@ -549,7 +538,7 @@ Outputs:
 
   CheckScreenShotTextApi:
     Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshottext/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot/"
     
   StudentPlan:
      Value: !Ref StudentPlan 
