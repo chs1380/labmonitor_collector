@@ -151,95 +151,105 @@ Resources:
   LabEventCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-        CodeUri: venv/lib/python3.6/dist-packages
-        Handler: collect_event_function.lambda_handler
-        Policies:
-          - Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - apigateway:GET
-                Resource: 
-                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                Resource:
-                    - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'   
-        Events:
-            LambdaMicroservice:
-              Type: Api
-              Properties:
-                RestApiId: !Ref ApiGatewayApi
-                Path: /event
-                Method: POST 
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: collect_event_function.lambda_handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - apigateway:GET
+              Resource: 
+                Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'
+            - Effect: Allow
+              Action:
+                - kinesis:PutRecords
+              Resource:
+                  - !GetAtt KeybroadEventStream.Arn
+                  - !GetAtt MouseEventStream.Arn
+      Environment:
+        Variables:        
+          MouseEventStream: !Ref MouseEventStream
+          KeybroadEventStream: !Ref KeybroadEventStream
+      Events:
+          LambdaMicroservice:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /event
+              Method: POST 
 
   LabCodeCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-        CodeUri: venv/lib/python3.6/dist-packages
-        Handler: collect_code_function.lambda_handler
-        MemorySize: 2048
-        Policies:
-          - AWSCodeCommitReadOnly
-          - Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - apigateway:GET
-                Resource: 
-                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                Resource:
-                    - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-              - Effect: Allow
-                Action:
-                  - s3:PutObjectAcl
-                Resource:
-                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-        Events:
-            LambdaMicroservice:
-              Type: Api
-              Properties:
-                RestApiId: !Ref ApiGatewayApi
-                Path: /code
-                Method: POST 
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: collect_code_function.lambda_handler
+      MemorySize: 2048
+      Policies:
+        - AWSCodeCommitReadOnly
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - apigateway:GET
+              Resource: 
+                Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+            - Effect: Allow
+              Action:
+                - s3:PutObjectAcl
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+      Events:
+          LambdaMicroservice:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /code
+              Method: POST 
 
   LabProcessCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-        CodeUri: venv/lib/python3.6/dist-packages
-        Handler: collect_process_function.lambda_handler
-        Policies:
-          - Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - apigateway:GET
-                Resource: 
-                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
-              - Effect: Allow
-                Action:
-                  - s3:PutObject
-                Resource:
-                    - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
-                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
-              - Effect: Allow
-                Action:
-                  - s3:PutObjectAcl
-                Resource:
-                    - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
-        Events:
-            LambdaMicroservice:
-              Type: Api
-              Properties:
-                RestApiId: !Ref ApiGatewayApi
-                Path: /process
-                Method: POST 
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: collect_process_function.lambda_handler
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - apigateway:GET
+              Resource: 
+                Fn::Sub: 'arn:aws:apigateway:${AWS::Region}::/apikeys/*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+            - Effect: Allow
+              Action:
+                - s3:PutObjectAcl
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+      Events:
+          LambdaMicroservice:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /process
+              Method: POST 
 
   CheckProgessFunction:
     Type: AWS::Serverless::Function 
@@ -372,6 +382,9 @@ Resources:
         
   StudentScreenShotBucket:
     Type: AWS::S3::Bucket
+    Properties:
+      AccelerateConfiguration:
+        AccelerationStatus: Enabled
 
   StudentMarkingBucket:
     Type: AWS::S3::Bucket
@@ -409,6 +422,18 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String            
+
+  MouseEventStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      RetentionPeriodHours: 24
+      ShardCount: 1
+  
+  KeybroadEventStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      RetentionPeriodHours: 24
+      ShardCount: 1      
       
   StudentPlan:
     Type: AWS::ApiGateway::UsagePlan

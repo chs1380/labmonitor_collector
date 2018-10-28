@@ -1,1 +1,0 @@
-export STACK_NAME=lab
