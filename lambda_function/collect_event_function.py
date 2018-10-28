@@ -44,23 +44,26 @@ def lambda_handler(event, context):
         student_event["student"] = apiKey["description"]
         body.append(json.dumps(student_event) )
         
-        del (student_event['time'], student_event['ip'], student_event['student'])
-        if ((student_event["name"] == "KeyPressEvent") or (student_event["name"] == "KeyReleaseEvent")):
-            keybroad.append({'Data': json.dumps(student_event).encode(), 'PartitionKey':student_id})
-            count += 1
-        else:
-            mouse.append({'Data': json.dumps(student_event).encode(), 'PartitionKey':student_id})
-            count += 1
-            
-        if count == 500:
-            put_record_to_kinesis(mouse, os.environ['MouseEventStream'])
-            put_record_to_kinesis(keybroad, os.environ['KeybroadEventStream'])
-            mouse = []
-            keybroad = []
-            count = 0
-            
-    put_record_to_kinesis(mouse, os.environ['MouseEventStream'])
-    put_record_to_kinesis(keybroad, os.environ['KeybroadEventStream'])   
+        if os.environ['EnableRealtimeAnalystics'] == 'true':
+            del (student_event['ip'], student_event['student'])
+            student_event['id'] = student_id
+            if ((student_event["name"] == "KeyPressEvent") or (student_event["name"] == "KeyReleaseEvent")):
+                keybroad.append({'Data': json.dumps(student_event).encode(), 'PartitionKey':student_id})
+                count += 1
+            else:
+                mouse.append({'Data': json.dumps(student_event).encode(), 'PartitionKey':student_id})
+                count += 1
+                
+            if count == 500:
+                put_record_to_kinesis(mouse, os.environ['MouseEventStream'])
+                put_record_to_kinesis(keybroad, os.environ['KeybroadEventStream'])
+                mouse = []
+                keybroad = []
+                count = 0
+    
+    if os.environ['EnableRealtimeAnalystics'] == 'true':        
+        put_record_to_kinesis(mouse, os.environ['MouseEventStream'])
+        put_record_to_kinesis(keybroad, os.environ['KeybroadEventStream'])   
         
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], 
             Key = f"event_stream/{partition}/id={student_id}/{filename}",

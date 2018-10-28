@@ -11,4 +11,5 @@ aws cloudformation deploy --stack-name $STACK_NAME --template-file package.yaml 
 --parameter-overrides \
     RunUnitTest="true" \
     GitCommand="git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git" \
-    SourceRespositoryName="ite3101_introduction_to_programming"
+    SourceRespositoryName="ite3101_introduction_to_programming" \
+    EnableRealtimeAnalystics="false" 

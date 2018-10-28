@@ -20,7 +20,13 @@ Parameters:
     Type: CommaDelimitedList
     Default: ""
     Description: Black List Process.
-    
+  EnableRealtimeAnalystics: 
+    Description: Environment type.
+    Default: false
+    Type: String
+    AllowedValues: 
+      - true
+      - false
 Globals:
   Function:
     Runtime: python3.6 # language used at runtime
@@ -35,7 +41,8 @@ Globals:
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
           BlackListProcess: "iexplore.exe,MicrosoftEdgeCP.exe"
-          
+Conditions: 
+  CreateKinesisResources: !Equals [ !Ref EnableRealtimeAnalystics, true ]          
 Resources:
   ApiGatewayApi:
     Type: AWS::Serverless::Api
@@ -167,16 +174,20 @@ Resources:
               Resource:
                   - Fn::Sub: 'arn:aws:s3:::${StudentLabDataBucket}/*'
                   - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'
-            - Effect: Allow
-              Action:
-                - kinesis:PutRecords
-              Resource:
-                  - !GetAtt KeybroadEventStream.Arn
-                  - !GetAtt MouseEventStream.Arn
+            - Fn::If:
+                - CreateKinesisResources
+                - Effect: Allow
+                  Action:
+                    - kinesis:PutRecords
+                  Resource:
+                    - !GetAtt MouseEventStream.Arn
+                    - !GetAtt KeybroadEventStream.Arn
+                - !Ref AWS::NoValue
       Environment:
         Variables:        
-          MouseEventStream: !Ref MouseEventStream
-          KeybroadEventStream: !Ref KeybroadEventStream
+          MouseEventStream: !If [CreateKinesisResources, !Ref MouseEventStream, ""]
+          KeybroadEventStream: !If [CreateKinesisResources, !Ref KeybroadEventStream, ""]
+          EnableRealtimeAnalystics: !Ref EnableRealtimeAnalystics
       Events:
           LambdaMicroservice:
             Type: Api
@@ -425,16 +436,96 @@ Resources:
 
   MouseEventStream:
     Type: AWS::Kinesis::Stream
+    Condition: CreateKinesisResources
     Properties:
       RetentionPeriodHours: 24
       ShardCount: 1
   
   KeybroadEventStream:
     Type: AWS::Kinesis::Stream
+    Condition: CreateKinesisResources
     Properties:
       RetentionPeriodHours: 24
       ShardCount: 1      
-      
+
+  MouseEventApplication:
+    Type: AWS::KinesisAnalytics::Application
+    Condition: CreateKinesisResources
+    Properties:
+      ApplicationName: !Sub MouseEventApplication${AWS::StackName}
+      ApplicationDescription: !Sub MouseEventApplication$ - {AWS::StackName}
+      ApplicationCode: !Sub |
+        CREATE OR REPLACE STREAM "DESTINATION_SQL_STREAM" ("id" VARCHAR(10), event_count INTEGER);
+        -- Create a pump which continuously selects from a source stream (SOURCE_SQL_STREAM_001)
+        -- performs an aggregate count that is grouped by columns ticker over a 10-second tumbling window
+        -- and inserts into output stream (DESTINATION_SQL_STREAM)
+        CREATE OR REPLACE  PUMP "STREAM_PUMP" AS INSERT INTO "DESTINATION_SQL_STREAM"
+        -- Aggregate function COUNT|AVG|MAX|MIN|SUM|STDDEV_POP|STDDEV_SAMP|VAR_POP|VAR_SAMP)
+        SELECT STREAM "id", COUNT(*) AS event_count
+        FROM "SOURCE_SQL_STREAM_001"
+        -- Uses a 10-second tumbling time window
+        GROUP BY "id", FLOOR(("SOURCE_SQL_STREAM_001".ROWTIME - TIMESTAMP '1970-01-01 00:00:00') SECOND / 10 TO SECOND);
+      Inputs:
+        - NamePrefix: "SOURCE_SQL_STREAM"
+          InputSchema:
+            RecordColumns:
+              - Name: "id"
+                SqlType: "VARCHAR(10)"
+                Mapping: "$.id"
+              - Name: "px"
+                SqlType: "INT"
+                Mapping: "$.x"
+              - Name: "py"
+                SqlType: "INT"
+                Mapping: "$.y"
+              - Name: "dx"
+                SqlType: "INT"
+                Mapping: "$.dx"
+              - Name: "dy"
+                SqlType: "INT"
+                Mapping: "$.dy"                
+              - Name: "button"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.button" 
+              - Name: "pressed"
+                SqlType: "VARCHAR(10)"    
+                Mapping: "$.pressed" 
+              - Name: "key"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.key"                 
+              - Name: "name"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.name"  
+            RecordFormat:
+              RecordFormatType: "JSON"
+              MappingParameters:
+                JSONMappingParameters:
+                  RecordRowPath: "$"
+          KinesisStreamsInput:
+            ResourceARN: !GetAtt MouseEventStream.Arn
+            RoleARN: !GetAtt KinesisAnalyticsRole.Arn
+
+  KinesisAnalyticsRole:
+    Type: AWS::IAM::Role
+    Condition: CreateKinesisResources
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: kinesisanalytics.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: Open
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: "*"
+                Resource: "*"
+
   StudentPlan:
     Type: AWS::ApiGateway::UsagePlan
     DependsOn:
