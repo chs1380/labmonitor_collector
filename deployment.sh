@@ -12,4 +12,6 @@ aws cloudformation deploy --stack-name $STACK_NAME --template-file package.yaml 
     RunUnitTest="true" \
     GitCommand="git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git" \
     SourceRespositoryName="ite3101_introduction_to_programming" \
-    EnableRealtimeAnalystics="false" 
+    EnableRealtimeAnalystics="false" \
+    CalendarUrl="https://calendar.google.com/calendar/ical/rtqocmtbc6i4fa8b9imo6o7384%40group.calendar.google.com/public/basic.ics" \
+    CourseKeywords="Introduction to Programing"

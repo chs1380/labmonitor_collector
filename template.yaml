@@ -20,6 +20,12 @@ Parameters:
     Type: CommaDelimitedList
     Default: ""
     Description: Black List Process.
+  CalendarUrl:
+    Type: String
+    Description: Public Class Calendar Url.
+  CourseKeywords:
+    Type: String
+    Description: Course Keywords.
   EnableRealtimeAnalystics: 
     Description: Environment type.
     Default: false
@@ -387,6 +393,30 @@ Resources:
                     Value: "screenshot/"
                   - Name: suffix
                     Value: ".jpeg"
+
+  ScheduledFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: scheduler_function.lambda_handler
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - cloudformation:UpdateStack
+              Resource: !Ref AWS::StackId
+      Environment:
+        Variables:
+          CalendarUrl: !Ref CalendarUrl
+          CourseKeywords: !Ref CourseKeywords
+          StackId: !Ref AWS::StackId
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0/15 * * * ? *)
         
   StudentLabDataBucket:
     Type: AWS::S3::Bucket
