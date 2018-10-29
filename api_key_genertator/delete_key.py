@@ -2,6 +2,8 @@ import csv
 import os
 import boto3
 
+boto3.setup_default_session(region_name=os.environ['REGION'])
+
 stackname=os.environ['STACK_NAME']
 
 script_dir = os.path.dirname(__file__) 

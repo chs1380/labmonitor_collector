@@ -4,21 +4,19 @@ from dateutil.rrule import *
 import urllib.request
 import pytz
 import os
+import boto3
 
 utc=pytz.UTC
 
 def get_events_from_ics(ics_string, window_start, window_end):
-    
     events = []
 
     def append_event(e):
-
         if e['startdt'] > window_end:
             return
         if e['enddt']:
             if e['enddt'] < window_start:
                 return
-
         events.append(e)
 
     def get_recurrent_datetimes(recur_rule, start, exclusions):
@@ -98,22 +96,72 @@ def get_events_from_ics(ics_string, window_start, window_end):
                 })
     events.sort(key=lambda e: e['startdt'])
     return events
+
+
+def set_realtime_parameter(enable_realtime_analystics:bool):
+    cloudformation_client = boto3.client('cloudformation')
+
+    response = cloudformation_client.update_stack(
+        StackName='lab',
+        UsePreviousTemplate=True,
+        Parameters=[
+        {
+            'ParameterKey': 'SourceRespositoryName',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'GitCommand',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'RunUnitTest',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'BlackListProcess',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'CalendarUrl',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'CourseKeywords',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'EnableRealtimeAnalystics',
+            'ParameterValue': str(enable_realtime_analystics).lower()
+        }, 
+        ],
+        Capabilities=['CAPABILITY_IAM']
+        )
+    print(response)
     
 def lambda_handler(event, context):
     
+    if os.environ['EnableRealtimeAnalystics'] == "false":
+        return
+    
     url = os.environ['CalendarUrl']
     course_keywords = os.environ['CourseKeywords']
-    stack_id = os.environ['StackId']
-    
-    print(course_keywords)
+    stack_name = os.environ['StackName']
     
     with urllib.request.urlopen(url) as response:
        ics_string = response.read()
     
-    window_start = datetime.now(timezone.utc)
-    window_end = window_start + timedelta(minutes=30)
-    window_start = window_start - timedelta(hours=5)
+    now = datetime.now(timezone.utc)
+    window_start = now - timedelta(minutes=30)
+    window_end = now + timedelta(minutes=30)
     events = get_events_from_ics(ics_string, window_start, window_end)
     
     for e in events:
-        print('{} - {}'.format(e['startdt'], e['summary']))
+        print('{} - {} - {}'.format(e['startdt'], e['enddt'], e['summary']))
+        if course_keywords in e['summary']:
+            print("Start Kinesis")
+            set_realtime_parameter(true)
+            return
+    else:
+        print("Stop Kinesis")
+        set_realtime_parameter(false)
+    

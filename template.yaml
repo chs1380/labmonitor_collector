@@ -406,12 +406,39 @@ Resources:
             - Effect: Allow
               Action:
                 - cloudformation:UpdateStack
-              Resource: !Ref AWS::StackId
+              Resource: 
+                - !Sub arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*
+            - Effect: Allow
+              Action:
+                - iam:GetRole
+                - iam:PassRole
+                - iam:DeleteRole
+                - iam:CreateRole
+                - iam:AttachRolePolicy
+                - iam:PutRolePolicy
+                - iam:DeleteRolePolicy
+                - kinesis:CreateStream
+                - kinesis:DeleteStream
+                - kinesis:DescribeStream
+                - kinesis:ListStreams
+                - kinesisanalytics:CreateApplication
+                - kinesisanalytics:DeleteApplication
+                - kinesisanalytics:DescribeApplication
+                - kinesisanalytics:ListApplications
+                - lambda:UpdateFunctionConfiguration
+                - lambda:GetFunctionConfiguration
+                - lambda:DeleteFunctionConfiguration
+                - lambda:ListTags
+                - lambda:TagResource
+                - lambda:UntagResource
+                - events:DescribeRule
+              Resource: "*"
       Environment:
         Variables:
           CalendarUrl: !Ref CalendarUrl
           CourseKeywords: !Ref CourseKeywords
-          StackId: !Ref AWS::StackId
+          StackName: !Ref AWS::StackName
+          EnableRealtimeAnalystics: !Ref EnableRealtimeAnalystics
       Events:
         Timer:
           Type: Schedule
