@@ -159,9 +159,9 @@ def lambda_handler(event, context):
         print('{} - {} - {}'.format(e['startdt'], e['enddt'], e['summary']))
         if course_keywords in e['summary']:
             print("Start Kinesis")
-            set_realtime_parameter(true)
+            set_realtime_parameter("true")
             return
     else:
         print("Stop Kinesis")
-        set_realtime_parameter(false)
+        set_realtime_parameter("false")
     
