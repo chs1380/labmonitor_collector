@@ -785,11 +785,15 @@ Outputs:
     
   CheckProgessApi:
     Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/progress/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/progress"
 
   CheckScreenShotTextApi:
     Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot"
+    
+  ScreenImageURL:
+    Value: !Join ['', ['https://', !GetAtt [StudentMarkingBucket, DomainName], '/Screenshot']]
+    Description: URL for website hosted on S3    
     
   StudentPlan:
      Value: !Ref StudentPlan 
