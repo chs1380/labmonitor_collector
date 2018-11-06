@@ -574,6 +574,7 @@ Resources:
 
   ConversationWriteCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ConversationTable
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
@@ -584,6 +585,7 @@ Resources:
 
   ConversationReadCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ConversationTable
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
@@ -629,6 +631,7 @@ Resources:
 
   ScreenshotMetaDataWriteCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ScreenshotMetaDataTable
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
@@ -639,6 +642,7 @@ Resources:
 
   ScreenshotMetaDataReadCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: ScreenshotMetaDataTable    
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
@@ -916,28 +920,27 @@ Resources:
                       
 Outputs:
   LabCollectorApi:
-    Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-    
+    Description: API Gateway endpoint URL for Prod stage
+
   CheckProgessApi:
-    Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/progress"
+    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function
 
   CheckScreenShotTextApi:
-    Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot"
+    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function
 
   ConversationURL:
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/conversation"
-    Description: URL for website hosted on S3    
-    
+    Description: URL for website hosted on S3        
+
   ScreenImageURL:
     Value: !Join ['', ['https://', !GetAtt [StudentMarkingBucket, DomainName], '/Screenshot']]
-    Description: URL for website hosted on S3    
-
+    Description: URL to get the screenhot    
     
   StudentPlan:
-     Value: !Ref StudentPlan 
+    Value: !Ref StudentPlan 
      
   StudentLabDataBucket:
     Value: !Ref StudentLabDataBucket 

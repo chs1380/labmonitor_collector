@@ -102,7 +102,7 @@ def set_realtime_parameter(enable_realtime_analystics:bool):
     cloudformation_client = boto3.client('cloudformation')
 
     response = cloudformation_client.update_stack(
-        StackName='lab',
+        StackName = os.environ['StackName'],
         UsePreviousTemplate=True,
         Parameters=[
         {
@@ -140,12 +140,9 @@ def set_realtime_parameter(enable_realtime_analystics:bool):
     
 def lambda_handler(event, context):
     
-    if os.environ['EnableRealtimeAnalystics'] == "false":
-        return
-    
     url = os.environ['CalendarUrl']
     course_keywords = os.environ['CourseKeywords']
-    stack_name = os.environ['StackName']
+
     
     with urllib.request.urlopen(url) as response:
        ics_string = response.read()
