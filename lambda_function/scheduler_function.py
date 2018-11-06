@@ -140,9 +140,6 @@ def set_realtime_parameter(enable_realtime_analystics:bool):
     
 def lambda_handler(event, context):
     
-    if os.environ['EnableRealtimeAnalystics'] == "false":
-        return
-    
     url = os.environ['CalendarUrl']
     course_keywords = os.environ['CourseKeywords']
     stack_name = os.environ['StackName']
