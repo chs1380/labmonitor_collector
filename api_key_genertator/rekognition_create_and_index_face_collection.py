@@ -5,8 +5,8 @@ from botocore.exceptions import ClientError
 from os import environ
 
 rekognition=boto3.client('rekognition', region_name='us-east-1')
-collectionId='IveFaceCollection'
-image_bucket="sumerianconcierge-s3bucket-t7r1rkgwf0sn"
+collectionId='AwsFaceCollection'
+image_bucket="awshackathonsumerian-s3bucket-4lfa7pkflhlz"
 prefix = "face/"
 
 def delete_collection():

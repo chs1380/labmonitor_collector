@@ -43,6 +43,7 @@ Globals:
           StudentLabDataBucket: !Ref StudentLabDataBucket
           StudentMarkingBucket: !Ref StudentMarkingBucket
           ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
+          ConversationTable: !Ref ConversationTable
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
@@ -92,6 +93,27 @@ Resources:
                 type: aws_proxy
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabProcessCollectorFunction.Arn}/invocations
+              responses: {}
+          '/conversation/{studentId}/{text}':
+            get:
+              parameters:
+                - in: path
+                  name: studentId
+                  schema:
+                    type: string
+                  required: true
+                  description: Student ID
+                - in: path
+                  name: text
+                  schema:
+                    type: string
+                  required: true
+                  description: conversation text 
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LabConversationCollectorFunction.Arn}/invocations
               responses: {}
           /screenshot:
             get:
@@ -268,6 +290,27 @@ Resources:
               Path: /process
               Method: POST 
 
+  LabConversationCollectorFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: collect_conversation_function.lambda_handler
+      Policies:
+        - ComprehendReadOnly
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${ConversationTable}
+      Events:
+          LambdaMicroservice:
+            Type: Api
+            Properties:
+              RestApiId: !Ref ApiGatewayApi
+              Path: /conversation/{studentId}/{text}
+              Method: GET 
+              
   CheckProgessFunction:
     Type: AWS::Serverless::Function 
     Properties:
@@ -394,6 +437,44 @@ Resources:
                   - Name: suffix
                     Value: ".jpeg"
 
+
+  ProcessScreenshotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: venv/lib/python3.6/dist-packages
+      Handler: process_screenshot_function.lambda_handler
+      Policies:
+        - AWSLambdaExecute
+        - AmazonRekognitionReadOnlyAccess
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource:
+                  - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'     
+      Events:
+        ScreenshotUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref StudentScreenShotBucket
+            Events: s3:ObjectCreated:*
+            Filter: 
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: "screenshot/"
+                  - Name: suffix
+                    Value: ".jpeg"
+
   ScheduledFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -482,6 +563,61 @@ Resources:
           Principal: '*'
           Action: s3:GetObject
           Resource: !Sub arn:aws:s3:::${StudentMarkingBucket}/*
+
+  ConversationTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: !Sub Conversation${AWS::StackName}
+      PrimaryKey:
+        Name: id
+        Type: String            
+
+  ConversationWriteCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 15
+      MinCapacity: 5
+      ResourceId: !Sub table/Conversation${AWS::StackName}
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:WriteCapacityUnits
+      ServiceNamespace: dynamodb
+
+  ConversationReadCapacityScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 15
+      MinCapacity: 5
+      ResourceId: !Sub table/Conversation${AWS::StackName}
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: dynamodb:table:ReadCapacityUnits
+      ServiceNamespace: dynamodb
+  
+ 
+  ConversationWriteScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ConversationWriteAutoScalingPolicy${AWS::StackName}
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ConversationWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 80.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+
+  ConversationReadScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ConversationReadAutoScalingPolicy${AWS::StackName}
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ConversationReadCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 80.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization 
         
   ScreenshotMetaDataTable:
     Type: AWS::Serverless::SimpleTable
@@ -491,7 +627,7 @@ Resources:
         Name: id
         Type: String            
 
-  WriteCapacityScalableTarget:
+  ScreenshotMetaDataWriteCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: 15
@@ -501,7 +637,7 @@ Resources:
       ScalableDimension: dynamodb:table:WriteCapacityUnits
       ServiceNamespace: dynamodb
 
-  ReadCapacityScalableTarget:
+  ScreenshotMetaDataReadCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
       MaxCapacity: 15
@@ -510,7 +646,33 @@ Resources:
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:ReadCapacityUnits
       ServiceNamespace: dynamodb
-  
+
+  ScreenshotMetaDataWriteScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ScreenshotMetaDataWriteAutoScalingPolicy${AWS::StackName}
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ScreenshotMetaDataWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 80.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+
+  ScreenshotMetaDataReadScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ScreenshotMetaDataReadAutoScalingPolicy${AWS::StackName}
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref ScreenshotMetaDataReadCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 80.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+          PredefinedMetricType: DynamoDBReadCapacityUtilization            
+
   ScalingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -542,32 +704,6 @@ Resources:
                   - cloudwatch:SetAlarmState"
                   - cloudwatch:DeleteAlarms"
                 Resource: "*"
-
-  WriteScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub WriteAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref WriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  ReadScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub ReadAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ReadCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization            
 
   MouseEventStream:
     Type: AWS::Kinesis::Stream
@@ -790,10 +926,15 @@ Outputs:
   CheckScreenShotTextApi:
     Description: "API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function"
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot"
+
+  ConversationURL:
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/conversation"
+    Description: URL for website hosted on S3    
     
   ScreenImageURL:
     Value: !Join ['', ['https://', !GetAtt [StudentMarkingBucket, DomainName], '/Screenshot']]
     Description: URL for website hosted on S3    
+
     
   StudentPlan:
      Value: !Ref StudentPlan 
