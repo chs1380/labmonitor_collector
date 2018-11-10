@@ -21,7 +21,7 @@ def top(image_path, saved_location):
 def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
     id = f"{student_id}-{task}-{suffix}"
     item ={"id": id, key: json.dumps(data)}
-    table = dynamodb.Table(os.environ['ScreenshotMetaDataTable'])
+    table = dynamodb.Table(os.environ['LabDataTable'])
     db_response = table.put_item(
        Item=item
     )
@@ -32,9 +32,6 @@ def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
     )
     
 def lambda_handler(event, context):
-    db = os.environ['ScreenshotMetaDataTable']
-
-    
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']
         key = record['s3']['object']['key']

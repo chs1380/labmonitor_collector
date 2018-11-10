@@ -7,6 +7,7 @@ from time import gmtime, strftime
 
 print('Loading function')
 s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
 
 def respond(err, res=None):
     return {

@@ -23,24 +23,26 @@ def respond(err, res=None):
 def get_result(student_id:str, task:str):
     id = student_id + "-" + task    
     return dynamodb_client.get_item(
-                TableName=os.environ['ScreenshotMetaDataTable'],
+                TableName=os.environ['LabDataTable'],
                 Key={'id': {"S": str(id)}})   
 
 def lambda_handler(event, context):
-    db = os.environ['ScreenshotMetaDataTable']
     student_id = event['pathParameters']['studentId']
     
     text = get_result(student_id, "TextDetections")
     moderation = get_result(student_id, "ModerationLabels")
     celebrity = get_result(student_id, "CelebrityFaces")
+    killed_processes = get_result(student_id, "KilledProecess")
     
     print(text)
     print(moderation)
     print(celebrity)
+    print(killed_processes)
     
     texts = []
     moderations = []
     celebrities = []
+    processes = []
     if "Item" in text:
         data = json.loads(text['Item']['DetectedText']['S'])
         line_data = filter(lambda x: x["Type"] == "LINE", data)
@@ -50,7 +52,10 @@ def lambda_handler(event, context):
     if "Item" in celebrity:
         celebrities = json.loads(celebrity['Item']['CelebrityFaces']['S'])
         celebrities = list(map(lambda x: {"Name": x["Name"],"Urls":x["Urls"]}, celebrities))
+    if "Item" in killed_processes:
+        processes = json.loads(killed_processes['Item']['KilledProecess']['S'])
+        
 
-    result = {'texts': texts,'moderation': moderations, "celebrity": celebrities }
+    result = {'texts': texts,'moderation': moderations, "celebrity": celebrities, "process": processes}
     return respond(None, result)
     

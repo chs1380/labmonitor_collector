@@ -42,7 +42,7 @@ Globals:
         Variables: 
           StudentLabDataBucket: !Ref StudentLabDataBucket
           StudentMarkingBucket: !Ref StudentMarkingBucket
-          ScreenshotMetaDataTable: !Ref ScreenshotMetaDataTable  
+          LabDataTable: !Ref LabDataTable  
           ConversationTable: !Ref ConversationTable
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
@@ -161,7 +161,7 @@ Resources:
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckProgessFunction.Arn}/invocations
               responses: {}
-          '/screenshot/{studentId}':
+          '/message/{studentId}':
             get:
               parameters:
                 - in: path
@@ -174,7 +174,7 @@ Resources:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
-                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckScreenShotFunction.Arn}/invocations
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CheckMessageFunction.Arn}/invocations
               responses: {} 
         components:
           securitySchemes:
@@ -282,6 +282,10 @@ Resources:
                 - s3:PutObjectAcl
               Resource:
                   - Fn::Sub: 'arn:aws:s3:::${StudentMarkingBucket}/*'  
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${LabDataTable}           
       Events:
           LambdaMicroservice:
             Type: Api
@@ -348,24 +352,24 @@ Resources:
               Path: /progress/{studentId}
               Method: GET              
 
-  CheckScreenShotFunction:
+  CheckMessageFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: venv/lib/python3.6/dist-packages
-      Handler: check_screenshot_function.lambda_handler
+      Handler: check_message_function.lambda_handler
       Policies:
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - dynamodb:GetItem
-              Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable} 
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${LabDataTable} 
       Events:
           LambdaMicroservice:
             Type: Api
             Properties:
               RestApiId: !Ref ApiGatewayApi
-              Path: /screenshot/{studentId}
+              Path: /message/{studentId}
               Method: GET
                 
   LabScreenshotCollectorFunction:
@@ -413,7 +417,7 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
-              Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${LabDataTable}
             - Effect: Allow
               Action:
                 - s3:GetObject
@@ -451,7 +455,7 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
-              Resource: !Sub arn:aws:dynamodb:*:*:table/${ScreenshotMetaDataTable}
+              Resource: !Sub arn:aws:dynamodb:*:*:table/${LabDataTable}
             - Effect: Allow
               Action:
                 - s3:GetObject
@@ -621,42 +625,42 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: DynamoDBReadCapacityUtilization 
         
-  ScreenshotMetaDataTable:
+  LabDataTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
-      TableName: !Sub ScreenShotMetaData${AWS::StackName}
+      TableName: !Sub LabData${AWS::StackName}
       PrimaryKey:
         Name: id
         Type: String            
 
-  ScreenshotMetaDataWriteCapacityScalableTarget:
+  LabDataWriteCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ScreenshotMetaDataTable
+    DependsOn: LabDataTable
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
-      ResourceId: !Sub table/ScreenShotMetaData${AWS::StackName}
+      ResourceId: !Sub table/LabData${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:WriteCapacityUnits
       ServiceNamespace: dynamodb
 
-  ScreenshotMetaDataReadCapacityScalableTarget:
+  LabDataReadCapacityScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ScreenshotMetaDataTable    
+    DependsOn: LabDataTable    
     Properties:
       MaxCapacity: 15
       MinCapacity: 5
-      ResourceId: !Sub table/ScreenShotMetaData${AWS::StackName}
+      ResourceId: !Sub table/LabData${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:ReadCapacityUnits
       ServiceNamespace: dynamodb
 
-  ScreenshotMetaDataWriteScalingPolicy:
+  LabDataWriteScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: !Sub ScreenshotMetaDataWriteAutoScalingPolicy${AWS::StackName}
+      PolicyName: !Sub LabDataWriteAutoScalingPolicy${AWS::StackName}
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ScreenshotMetaDataWriteCapacityScalableTarget
+      ScalingTargetId: !Ref LabDataWriteCapacityScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 80.0
         ScaleInCooldown: 60
@@ -664,12 +668,12 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: DynamoDBWriteCapacityUtilization
 
-  ScreenshotMetaDataReadScalingPolicy:
+  LabDataReadScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: !Sub ScreenshotMetaDataReadAutoScalingPolicy${AWS::StackName}
+      PolicyName: !Sub LabDataReadAutoScalingPolicy${AWS::StackName}
       PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ScreenshotMetaDataReadCapacityScalableTarget
+      ScalingTargetId: !Ref LabDataReadCapacityScalableTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 80.0
         ScaleInCooldown: 60
@@ -925,11 +929,11 @@ Outputs:
 
   CheckProgessApi:
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/progress"
-    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function
+    Description: API Gateway endpoint URL for Prod stage for Progress
 
-  CheckScreenShotTextApi:
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/screenshot"
-    Description: API Gateway endpoint URL for Prod stage for LabEventCollectorFunction function
+  CheckMessageApi:
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/message"
+    Description: API Gateway endpoint URL for Prod stage for Message
 
   ConversationURL:
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/conversation"

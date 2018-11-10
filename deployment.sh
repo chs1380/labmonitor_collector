@@ -10,8 +10,9 @@ aws cloudformation deploy --stack-name $STACK_NAME --template-file package.yaml 
 --region $REGION --capabilities CAPABILITY_IAM \
 --parameter-overrides \
     RunUnitTest="true" \
+    BlackListProcess="iexplore.exe,MicrosoftEdge.exe" \
     GitCommand="git clone -b server https://github.com/wongcyrus/ite3101_introduction_to_programming.git" \
     SourceRespositoryName="ite3101_introduction_to_programming" \
     EnableRealtimeAnalystics="true" \
     CalendarUrl="https://calendar.google.com/calendar/ical/spe8ehlqjkv8hd7mdjs3d2g80c%40group.calendar.google.com/public/basic.ics" \
-    CourseKeywords="Introduction to Programing"
+    CourseKeywords="awshackathon"
