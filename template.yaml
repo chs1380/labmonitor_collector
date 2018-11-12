@@ -937,7 +937,7 @@ Outputs:
 
   ConversationURL:
     Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/conversation"
-    Description: URL for website hosted on S3        
+    Description: URL to save speech text.        
 
   ScreenImageURL:
     Value: !Join ['', ['https://', !GetAtt [StudentMarkingBucket, DomainName], '/Screenshot']]
@@ -955,6 +955,12 @@ Outputs:
   StudentScreenShotBucket:
     Value: !Ref StudentScreenShotBucket
     
+  ConversationTable:
+    Value: !Ref ConversationTable
+    
+  LabDataTable:
+    Value: !Ref LabDataTable
+  
   ApiKey:
     Value: !Ref ApiKey
 
