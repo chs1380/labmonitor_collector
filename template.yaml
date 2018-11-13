@@ -363,6 +363,7 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:GetItem
+                - dynamodb:DeleteItem
               Resource: !Sub arn:aws:dynamodb:*:*:table/${LabDataTable} 
       Events:
           LambdaMicroservice:
@@ -581,7 +582,7 @@ Resources:
     DependsOn: ConversationTable
     Properties:
       MaxCapacity: 15
-      MinCapacity: 5
+      MinCapacity: 1
       ResourceId: !Sub table/Conversation${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:WriteCapacityUnits
@@ -592,7 +593,7 @@ Resources:
     DependsOn: ConversationTable
     Properties:
       MaxCapacity: 15
-      MinCapacity: 5
+      MinCapacity: 1
       ResourceId: !Sub table/Conversation${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:ReadCapacityUnits
@@ -638,7 +639,7 @@ Resources:
     DependsOn: LabDataTable
     Properties:
       MaxCapacity: 15
-      MinCapacity: 5
+      MinCapacity: 1
       ResourceId: !Sub table/LabData${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:WriteCapacityUnits
@@ -649,7 +650,7 @@ Resources:
     DependsOn: LabDataTable    
     Properties:
       MaxCapacity: 15
-      MinCapacity: 5
+      MinCapacity: 1
       ResourceId: !Sub table/LabData${AWS::StackName}
       RoleARN: !GetAtt ScalingRole.Arn
       ScalableDimension: dynamodb:table:ReadCapacityUnits
