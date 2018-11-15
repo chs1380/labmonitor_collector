@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import subprocess
 import tarfile,sys,shutil
 
 print('Loading function')
@@ -31,10 +32,10 @@ def lambda_handler(event, context):
     setup_git()
     clone_source()
     overwrite_source_code(body)
-    test_result = run_unit_test(body, dirpath)
+    test_result = run_unit_test(body)
     print(test_result)
-    print(test_result.splitlines()[-1])
-    is_pass_all_tests = "failed" not in test_result.splitlines()[-1] #Last line.
+    print(test_result.splitlines())
+    is_pass_all_tests = "FAILED" not in test_result
  
     s3.put_object(Bucket=os.environ['StudentLabDataBucket'], Key="test_result/"+ student_id + key,
                   Body=test_result,
@@ -111,11 +112,12 @@ def overwrite_source_code(body):
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
 
-def run_unit_test(body, dirpath):
+def run_unit_test(body):
     segment = get_key(body).split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
-    os.chdir(dirpath)
-    return os.popen(f'python pytest.py /tmp/{SOURCE_RESPOSITORY_NAME}/tests/' + segment[1] + "/test_"+ segment[2]).read()
+    os.chdir(f"/tmp/{SOURCE_RESPOSITORY_NAME}")
+    print(f'python -m unittest tests/' + segment[1] + "/test_"+ segment[2])
+    return subprocess.getoutput(f'python -m unittest tests/' + segment[1] + "/test_"+ segment[2])
             
             
 def respond(err, res=None):
