@@ -17,8 +17,8 @@ Parameters:
       - false
     Description: Run pytest unittest or not.
   BlackListProcess: 
-    Type: CommaDelimitedList
-    Default: ""
+    Type: String
+    Default: "iexplore.exe,MicrosoftEdge.exe"
     Description: Black List Process.
   CalendarUrl:
     Type: String
@@ -47,7 +47,7 @@ Globals:
           SourceRespositoryName: !Ref SourceRespositoryName
           GitCommand: !Ref GitCommand
           RunUnitTest: !Ref RunUnitTest
-          BlackListProcess: "iexplore.exe,MicrosoftEdgeCP.exe"
+          BlackListProcess: !Ref BlackListProcess
 Conditions: 
   CreateKinesisResources: !Equals [ !Ref EnableRealtimeAnalystics, true ]          
 Resources:
