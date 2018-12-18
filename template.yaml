@@ -752,6 +752,15 @@ Resources:
               - Name: "id"
                 SqlType: "VARCHAR(10)"
                 Mapping: "$.id"
+              - Name: "name"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.name"                 
+              - Name: "button"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.button" 
+              - Name: "pressed"
+                SqlType: "VARCHAR(10)"    
+                Mapping: "$.pressed"                 
               - Name: "px"
                 SqlType: "INT"
                 Mapping: "$.x"
@@ -763,19 +772,10 @@ Resources:
                 Mapping: "$.dx"
               - Name: "dy"
                 SqlType: "INT"
-                Mapping: "$.dy"                
-              - Name: "button"
-                SqlType: "VARCHAR(15)"    
-                Mapping: "$.button" 
-              - Name: "pressed"
-                SqlType: "VARCHAR(10)"    
-                Mapping: "$.pressed" 
-              - Name: "key"
-                SqlType: "VARCHAR(15)"    
-                Mapping: "$.key"                 
-              - Name: "name"
-                SqlType: "VARCHAR(15)"    
-                Mapping: "$.name"  
+                Mapping: "$.dy"  
+              - Name: "event_time"
+                SqlType: "TIMESTAMP"    
+                Mapping: "$.time"                  
             RecordFormat:
               RecordFormatType: "JSON"
               MappingParameters:
@@ -785,6 +785,48 @@ Resources:
             ResourceARN: !GetAtt MouseEventStream.Arn
             RoleARN: !GetAtt KinesisAnalyticsRole.Arn
 
+  KeybroadEventApplication:
+    Type: AWS::KinesisAnalytics::Application
+    Condition: CreateKinesisResources
+    Properties:
+      ApplicationName: !Sub KeybroadEventApplication${AWS::StackName}
+      ApplicationDescription: !Sub KeybroadEventApplication$ - {AWS::StackName}
+      ApplicationCode: !Sub |
+        CREATE OR REPLACE STREAM "DESTINATION_SQL_STREAM" ("id" VARCHAR(10), event_count INTEGER);
+        -- Create a pump which continuously selects from a source stream (SOURCE_SQL_STREAM_001)
+        -- performs an aggregate count that is grouped by columns ticker over a 10-second tumbling window
+        -- and inserts into output stream (DESTINATION_SQL_STREAM)
+        CREATE OR REPLACE  PUMP "STREAM_PUMP" AS INSERT INTO "DESTINATION_SQL_STREAM"
+        -- Aggregate function COUNT|AVG|MAX|MIN|SUM|STDDEV_POP|STDDEV_SAMP|VAR_POP|VAR_SAMP)
+        SELECT STREAM "id", COUNT(*) AS event_count
+        FROM "SOURCE_SQL_STREAM_001"
+        -- Uses a 10-second tumbling time window
+        GROUP BY "id", FLOOR(("SOURCE_SQL_STREAM_001".ROWTIME - TIMESTAMP '1970-01-01 00:00:00') SECOND / 10 TO SECOND);
+      Inputs:
+        - NamePrefix: "SOURCE_SQL_STREAM"
+          InputSchema:
+            RecordColumns:
+              - Name: "id"
+                SqlType: "VARCHAR(10)"
+                Mapping: "$.id"
+              - Name: "name"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.name"                  
+              - Name: "key"
+                SqlType: "VARCHAR(15)"    
+                Mapping: "$.key"
+              - Name: "event_time"
+                SqlType: "TIMESTAMP"    
+                Mapping: "$.time"                 
+            RecordFormat:
+              RecordFormatType: "JSON"
+              MappingParameters:
+                JSONMappingParameters:
+                  RecordRowPath: "$"
+          KinesisStreamsInput:
+            ResourceARN: !GetAtt KeybroadEventStream.Arn
+            RoleARN: !GetAtt KinesisAnalyticsRole.Arn
+            
   KinesisAnalyticsRole:
     Type: AWS::IAM::Role
     Condition: CreateKinesisResources

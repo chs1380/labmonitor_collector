@@ -15,4 +15,4 @@ aws cloudformation deploy --stack-name $STACK_NAME --template-file package.yaml 
     SourceRespositoryName="ite3101_introduction_to_programming" \
     EnableRealtimeAnalystics="true" \
     CalendarUrl="https://calendar.google.com/calendar/ical/spe8ehlqjkv8hd7mdjs3d2g80c%40group.calendar.google.com/public/basic.ics" \
-    CourseKeywords="awshackathon"
+    CourseKeywords="lab"
