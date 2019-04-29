@@ -17,8 +17,8 @@ py==1.7.0
 pycparser==2.19
 python-dateutil==2.7.5
 pytz==2018.7
-requests==2.20.1
+requests>=2.20.1
 six==1.11.0
 sslyze==2.0.1
 tls-parser==1.2.1
-urllib3==1.24.1
+urllib3>=1.24.2
