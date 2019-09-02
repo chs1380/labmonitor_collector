@@ -1,8 +1,10 @@
+import sys
+sys.path.append("/opt/")
 import boto3
 import json
 import os
 import subprocess
-import tarfile,sys,shutil
+import tarfile,shutil
 
 print('Loading function')
 s3 = boto3.client('s3')
@@ -93,7 +95,7 @@ def setup_git():
         return
     os.makedirs(targetDirectory)
     
-    shutil.copyfile("git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
+    shutil.copyfile("/opt/git-2.4.3.tar", os.path.join(targetDirectory, "git-2.4.3.tar"))
     os.chdir(targetDirectory)
     untar(os.path.join(targetDirectory, "git-2.4.3.tar"))
     os.system('git --version')

@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/opt/")
 from datetime import date, datetime, timedelta, timezone
 import icalendar
 from dateutil.rrule import *

@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/opt/")
 import boto3
 import os
 import sys

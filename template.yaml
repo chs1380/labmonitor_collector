@@ -188,6 +188,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: collect_event_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -229,6 +231,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: collect_code_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       MemorySize: 2048
       Policies:
         - AWSCodeCommitReadOnly
@@ -263,6 +267,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: collect_process_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -299,6 +305,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: collect_conversation_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - ComprehendReadOnly
         - Version: '2012-10-17'
@@ -320,6 +328,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: check_progress_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -357,6 +367,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: check_message_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -378,6 +390,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: collect_screenshot_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - AWSLambdaExecute # Managed Policy
         - Version: '2012-10-17'
@@ -410,6 +424,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: process_screenshot_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - AWSLambdaExecute
         - AmazonRekognitionReadOnlyAccess
@@ -448,6 +464,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: process_screenshot_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - AWSLambdaExecute
         - AmazonRekognitionReadOnlyAccess
@@ -485,6 +503,8 @@ Resources:
     Properties:
       CodeUri: lambda_function/
       Handler: scheduler_function.lambda_handler
+      Layers:
+        - !Ref LibLayer  
       Policies:
         - AWSLambdaExecute
         - Version: '2012-10-17'
@@ -530,7 +550,16 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0/15 * * * ? *)
-        
+
+  LibLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: lib
+      CompatibleRuntimes:
+        - python3.7
+      LicenseInfo: 'Available under the MIT-0 license.'
+      RetentionPolicy: Delete  
+      
   StudentLabDataBucket:
     Type: AWS::S3::Bucket
         
@@ -577,55 +606,6 @@ Resources:
         Name: id
         Type: String            
 
-  ConversationWriteCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ConversationTable
-    Properties:
-      MaxCapacity: 15
-      MinCapacity: 1
-      ResourceId: !Sub table/Conversation${AWS::StackName}
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:WriteCapacityUnits
-      ServiceNamespace: dynamodb
-
-  ConversationReadCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: ConversationTable
-    Properties:
-      MaxCapacity: 15
-      MinCapacity: 1
-      ResourceId: !Sub table/Conversation${AWS::StackName}
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:ReadCapacityUnits
-      ServiceNamespace: dynamodb
-  
- 
-  ConversationWriteScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub ConversationWriteAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ConversationWriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  ConversationReadScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub ConversationReadAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref ConversationReadCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization 
-        
   LabDataTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
