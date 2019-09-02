@@ -35,7 +35,7 @@ Parameters:
       - false
 Globals:
   Function:
-    Runtime: python3.6 # language used at runtime
+    Runtime: python3.7 # language used at runtime
     Timeout: 180 # timeout for a given lambda function execution
     MemorySize: 512
     Environment:
@@ -186,7 +186,7 @@ Resources:
   LabEventCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: collect_event_function.lambda_handler
       Policies:
         - Version: '2012-10-17'
@@ -227,7 +227,7 @@ Resources:
   LabCodeCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: collect_code_function.lambda_handler
       MemorySize: 2048
       Policies:
@@ -261,7 +261,7 @@ Resources:
   LabProcessCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: collect_process_function.lambda_handler
       Policies:
         - Version: '2012-10-17'
@@ -297,7 +297,7 @@ Resources:
   LabConversationCollectorFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: collect_conversation_function.lambda_handler
       Policies:
         - ComprehendReadOnly
@@ -318,7 +318,7 @@ Resources:
   CheckProgessFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: check_progress_function.lambda_handler
       Policies:
         - Version: '2012-10-17'
@@ -355,7 +355,7 @@ Resources:
   CheckMessageFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: check_message_function.lambda_handler
       Policies:
         - Version: '2012-10-17'
@@ -376,7 +376,7 @@ Resources:
   LabScreenshotCollectorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: collect_screenshot_function.lambda_handler
       Policies:
         - AWSLambdaExecute # Managed Policy
@@ -408,7 +408,7 @@ Resources:
   ProcessScreenshotFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: process_screenshot_function.lambda_handler
       Policies:
         - AWSLambdaExecute
@@ -446,7 +446,7 @@ Resources:
   ProcessScreenshotFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: process_screenshot_function.lambda_handler
       Policies:
         - AWSLambdaExecute
@@ -483,7 +483,7 @@ Resources:
   ScheduledFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: venv/lib/python3.6/dist-packages
+      CodeUri: lambda_function/
       Handler: scheduler_function.lambda_handler
       Policies:
         - AWSLambdaExecute
@@ -633,86 +633,6 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String            
-
-  LabDataWriteCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: LabDataTable
-    Properties:
-      MaxCapacity: 15
-      MinCapacity: 1
-      ResourceId: !Sub table/LabData${AWS::StackName}
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:WriteCapacityUnits
-      ServiceNamespace: dynamodb
-
-  LabDataReadCapacityScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
-    DependsOn: LabDataTable    
-    Properties:
-      MaxCapacity: 15
-      MinCapacity: 1
-      ResourceId: !Sub table/LabData${AWS::StackName}
-      RoleARN: !GetAtt ScalingRole.Arn
-      ScalableDimension: dynamodb:table:ReadCapacityUnits
-      ServiceNamespace: dynamodb
-
-  LabDataWriteScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub LabDataWriteAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref LabDataWriteCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBWriteCapacityUtilization
-
-  LabDataReadScalingPolicy:
-    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-    Properties:
-      PolicyName: !Sub LabDataReadAutoScalingPolicy${AWS::StackName}
-      PolicyType: TargetTrackingScaling
-      ScalingTargetId: !Ref LabDataReadCapacityScalableTarget
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 80.0
-        ScaleInCooldown: 60
-        ScaleOutCooldown: 60
-        PredefinedMetricSpecification:
-          PredefinedMetricType: DynamoDBReadCapacityUtilization            
-
-  ScalingRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          -
-            Effect: "Allow"
-            Principal:
-              Service:
-                - application-autoscaling.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      Path: "/"
-      Policies:
-        -
-          PolicyName: "root"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              -
-                Effect: "Allow"
-                Action:
-                  - dynamodb:DescribeTable"
-                  - dynamodb:UpdateTable"
-                  - cloudwatch:PutMetricAlarm"
-                  - cloudwatch:DescribeAlarms"
-                  - cloudwatch:GetMetricStatistics"
-                  - cloudwatch:SetAlarmState"
-                  - cloudwatch:DeleteAlarms"
-                Resource: "*"
 
   MouseEventStream:
     Type: AWS::Kinesis::Stream
