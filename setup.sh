@@ -10,7 +10,3 @@ brew --version
 brew tap aws/tap
 brew install aws-sam-cli
 sam --version
-# python3 -m venv venv
-# source venv/bin/activate
-# pip install --upgrade pip
-# pip install -r requirements.txt

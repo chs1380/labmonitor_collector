@@ -1,69 +1,106 @@
 NAME,ID,CLASS
-CHAN Kin Wai(陳健偉),180155153,A
-CHENG Wai Chung(鄭偉忠),180143732,A
-CHEUNG Hoi(張凱),180124477,A
-CHEUNG Kam Hung(張金洪),180354210,A
-CHEUNG Ming Hei(張銘禧),180158536,A
-CHONG Kwai Hung(莊桂鴻),180501380,A
-CHU Siu Yin Sterwood(朱紹然),180466846,A
-DU Songqing(杜嵩清),180411638,A
-HO Wai To(何偉濤),180043905,A
-KWAN Pui Tung(關沛東),180364934,A
-KWOK Ho Ming(郭灝明),180156727,A
-KWOK Tsz Lung(郭子龍),180379517,A
-LAU Chun Ming(劉俊銘),180156580,A
-LEE Ho Yin(李浩然),180235614,A
-LEUNG Ka Fai(梁嘉輝),180492329,A
-LEUNG Wing Hin(梁穎軒),180133517,A
-LI Bo Zuo(李泊佐),180472785,A
-LI Ka Kit(李嘉傑),180288263,A
-MAN Kai Wing(文啟榮),180152624,A
-NAWAZ Rahman(),180094597,A
-NG Kai Hin(吳啟軒),180166444,A
-NG Kwun Wa(伍冠華),180219638,A
-SALEEM Nasir Tariq(達偉),180146168,A
-SHEK Ho Yin(石浩然),180012897,A
-SO Ka Kit Kelvin(蘇嘉傑),180186916,A
-TAI Tsz Hong(戴子康),180201832,A
-TANG Chun Ho(鄧俊豪),180217043,A
-TANG Hiu Yee Hugo(鄧曉義),180412948,A
-TUNG Ho Ming(童浩銘),180162248,A
-WAN Ka Chi(溫嘉智),180162771,A
-WONG Hok Leung(黃學良),180469652,A
-WONG Tsz Pok Joshua(黃子樸),180099568,A
-YIP Chun Ho(葉俊豪),180306328,A
-YIU Lung Fai(饒龍輝),180188184,A
-AU YEUNG Man Kit(歐陽文傑),180066119,B
-CHAN Ka Tong(陳家棠),180135584,B
-CHAN Kai Fung(陳佳鋒),180675496,B
-CHENG Sin On(鄭善安),180277967,B
-CHEUNG Ho Fung(張浩楓),180676432,B
-CHEUNG Ho Wai(張浩維),180238131,B
-CHEUNG Tsz Wai(張梓蔚),180300397,B
-CHUNG Lai Kei(鍾禮頎),180171939,B
-CHUNG Tin Yi(鍾天怡),180198429,B
-FUNG Ka Lok(馮家樂),180147626,B
-HEUNG Nok Yin(香諾言),180127142,B
-HO Shan(何山),180242469,B
-HO Yuen Ling(何婉綾),180681325,B
-LAI Chung Him(黎重謙),180181005,B
-LAM Lok Man(林烙文),180105912,B
-LAU Ka Ho(劉嘉灝),180231639,B
-LAW Chin Ming(羅展銘),180162691,B
-LEE Cheuk Kwan(李綽君),180675503,B
-LEE Wang(利泓),180242389,B
-LEE Wang Fung(李泓鋒),180410457,B
-LEUNG Emiri(梁惠美利),180416020,B
-LEUNG Siu Keung(梁肇強),180514222,B
-LEUNG Wai Hin(梁偉軒),180081307,B
-LI Cheuk Yin(李卓賢),180074586,B
-LI Yu Hang(李汝恆),180243386,B
-NGAN Man Chun(顏文駿),180424032,B
-SO Sheldon(蘇倬賢),180148186,B
-TAI Tsz Yeung(戴梓洋),180031132,B
-TANG Wai Chak(鄧瑋澤),180675816,B
-TSANG Tsz Hang(曾子恒),180509181,B
-TSUI Ka Hung(徐嘉鴻),180662311,B
-WONG Tsz Fung(黃梓峰),180145043,B
-YAU Man Ho(丘文豪),180189722,B
-YIP Chun Yung(葉津勇),180302944,B
+CHAN Pak Hei(陳柏煕),190060788,A
+CHAN Wai Lok(陳煒樂),190236147,A
+CHENG Man Hei(鄭汶希),190126106,A
+CHENG Tsz Lam(鄭梓霖),190021081,A
+CHEUNG Wai Pong(張衛邦),190468481,A
+CHOI Cheuk Lam(蔡卓霖),190182779,A
+CHU Lok Lam(朱樂霖),190337339,A
+FUNG Chun Ming(馮俊明),190385189,A
+FUNG Zhi Mei(封智美),190283911,A
+HO Pui Kwan(何沛君),190274404,A
+HUI Kai Hin(許啟軒),190332276,A
+HUI Pak Leong(許栢亮),190422294,A
+LAM Pak Yin(林珀賢),190337259,A
+LAU Chyou Hoo(劉宙桐),190053853,A
+LI Chaoqiang(李超强),190266729,A
+NGAU Sheung Tong Coralie(牛相堂),190464992,A
+POON Kiu Fung(潘僑豐),190169339,A
+TANG Pui San(鄧培燊),190459933,A
+TSUI Ka Yan(徐嘉欣),190064032,A
+WONG Yun Sang(王潤生),190000405,A
+YIP Chung Man(葉鍾文),190439725,A
+YIU Ka Ho(姚嘉壕),190147777,A
+AU Mook Pan(歐沐斌),190153932,B
+CHAN Wai Fung(陳偉鋒),190110723,B
+FUNG Yiu Pun(馮耀本),190071348,B
+HO Wai Ming(何偉銘),190132101,B
+KONG Wai Tim(鄺偉添),190061994,B
+LAM Ho Yin(林浩然),190087807,B
+LAM Man Hei(林文希),190157802,B
+LAM Yam Chi(林鑫志),190002841,B
+LAU Ka Yan(劉家仁),190090062,B
+LAU Kai Ho(劉佳豪),190321090,B
+LEUNG Chi Ho(梁志豪),190081028,B
+LUK Wai Tung(陸偉桐),190195474,B
+MA Ngan Chung(馬雁聰),190059187,B
+MING Chun Fai Ryan(閔晉輝),190029889,B
+NG Ho Wing(吳浩榮),190218455,B
+NG Siu Chi(伍紹智),190073366,B
+SHIU Wai Lok(邵韋樂),190061736,B
+TIAN Li(田力),190234271,B
+TONG Wan Tang(唐雲騰),190059163,B
+TSUI Lung(徐龍),190069470,B
+WONG Chiu Ching(黃照正),190209274,B
+WONG Ho Ming(黃浩明),190018875,B
+WONG Ka Lok(王嘉樂),190089223,B
+WONG Wing Chun Michael(黃永俊),190100975,B
+WU Wing Wong(胡永旺),190009184,B
+YUEN Cheuk Lam(袁卓霖),190213447,B
+YUEN Wing Chung(阮永聰),190059199,B
+ZHOU Quan(周權),190211835,B
+CHAN Chi Kin(陳志健),190091833,C
+CHAN Man Fung(陳文鋒),190399446,C
+CHAN Wai Lam(陳煒林),190158221,C
+CHAN Yat Ying(陳逸英),190252332,C
+CHAN Yu Fu(陳宇富),190020397,C
+CHAU Long Ching(周朗澄),190113713,C
+CHEUNG Kin Lun(張健麟),190093586,C
+HAU Kit Hoi(侯傑凱),190174835,C
+HO Cheuk Hei(何卓禧),190219384,C
+HUI Wong Kit(許煌傑),190061355,C
+KO Shun(高順),190201516,C
+KONG Chun Wang(江俊泓),190159832,C
+KWAN Ho Lam(關皓霖),190125091,C
+KWOK Chi Kit(郭智杰),190126284,C
+LAM Tim Long(林添朗),190140820,C
+LEE Sau Hon(李首翰),190161108,C
+LEE Wing Kwan(李永坤),190093838,C
+LEUNG Ronald(梁梓峰),190320032,C
+LEUNG Siu Hong(梁兆康),190170800,C
+MA Changjian(馬暢鍵),190048370,C
+NG Sik Man(伍錫文),190141171,C
+SZETO Chun Pong(司徒震邦),190037171,C
+WONG Lok Hin(黃洛軒),190088889,C
+YIM Kwing Chung Eugene(嚴炯聰),190127188,C
+YUEN Wai Lok(袁偉樂),190144321,C
+ZHANG Jinwei(張錦威),190182177,C
+ZHAO Baichun(趙柏淳),190317261,C
+CHAN Ka Hei(陳珈晞),190065422,D
+CHAN Kawai(陳家偉),190005818,D
+CHAN Pak Hong(陳栢康),190005806,D
+CHAN Wing Ho(陳詠豪),190095567,D
+CHUI Sau Wai(崔修瑋),190235568,D
+FOK Wai Yin(霍偉賢),190322234,D
+FUNG Cheuk Him(馮焯謙),190061275,D
+HO Wai Kan(何慰根),190185444,D
+IP Wing Kai(葉榮佳),190180909,D
+KO Siu Fan(高小凡),190166048,D
+LAI Chi Shing(黎志誠),190130838,D
+LAM Chun Ho(林俊豪),190224216,D
+LAM Kwan Yin(林鈞賢),190066480,D
+LAU Wai Hang(劉煒桁),190057551,D
+LEE Ching Ngai(李政毅),190121829,D
+LEUNG King Hei(梁景熙),190255309,D
+LI Fude(李福得),190326614,D
+LIU Kwun Kiu(廖冠喬),190108881,D
+MAK Kai Cheung(麥啟翔),190125828,D
+MAK Yuen Fung(麥源豐),190320056,D
+MAN Kai Hong(文啟康),190131000,D
+MOK Ho Yin(莫浩賢),190143428,D
+NGO Yu Hin(敖宇軒),190102981,D
+PO King Lam(布景霖),190213306,D
+PUN Cho Yan(潘楚欣),190056960,D
+TSE Siu Lun(謝兆綸),190249026,D
+TSUI Ka Ming(徐嘉明),190251476,D
+WONG Kit Hay Eugene Felipe(黄傑曦),190034746,D
