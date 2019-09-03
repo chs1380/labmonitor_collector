@@ -34,6 +34,10 @@ def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
     )
     
 def lambda_handler(event, context):
+    if os.environ['AnalysisScreenShot'] == "false":
+        print("AnalysisScreenShot Disabled!")
+        return 
+    
     for record in event['Records']:
         bucket = record['s3']['bucket']['name']
         key = record['s3']['object']['key']

@@ -22,6 +22,10 @@ def respond(err, res=None):
 
 
 def lambda_handler(event, context):
+    if os.environ['TakeScreenShot'] == "false":
+        print("TakeScreenShot Disabled!")
+        return respond(None, "Disabled")
+    
     apiKey = apigateway.get_api_key(apiKey=event["requestContext"]["identity"]["apiKeyId"],includeValue=True)
     student_id = apiKey["name"].split("_")[0]
 
@@ -33,7 +37,8 @@ def lambda_handler(event, context):
     key = f"screenshot/{partition}/id={student_id}/{filename}"
    
     conditions = [
-        ['content-length-range', 0, 3000000]
+        ['content-length-range', 0, 524289],
+        {"Content-Type": "image/jpeg"}
     ]
 
     signed_url = s3.generate_presigned_post(Bucket=bucket, Key=key, Conditions=conditions, ExpiresIn=60*2,)

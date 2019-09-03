@@ -109,7 +109,7 @@ def clone_source():
     
     
 def overwrite_source_code(body):
-    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/lab/" + get_key(body)
+    code_file_path = f"/tmp/{SOURCE_RESPOSITORY_NAME}/" + get_key(body)
     os.remove(code_file_path)
     with open(code_file_path, "w+") as codefile:
         codefile.write(body["code"])
@@ -118,8 +118,8 @@ def run_unit_test(body):
     segment = get_key(body).split("/")
     os.environ['PATH'] = os.environ['PATH'] + ":" +  os.environ['LAMBDA_RUNTIME_DIR']
     os.chdir(f"/tmp/{SOURCE_RESPOSITORY_NAME}")
-    print(f'python -m unittest tests/' + segment[1] + "/test_"+ segment[2])
-    return subprocess.getoutput(f'python -m unittest tests/' + segment[1] + "/test_"+ segment[2])
+    print(f'python -m unittest tests/' + segment[2] + "/test_"+ segment[3])
+    return subprocess.getoutput(f'python -m unittest tests/' + segment[2] + "/test_"+ segment[3])
             
             
 def respond(err, res=None):
