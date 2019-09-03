@@ -29,7 +29,14 @@ Parameters:
     AllowedValues: 
       - true
       - false
-    Description: Analysis ScreenShot or not.        
+    Description: Analysis ScreenShot or not.
+  DataSaving:
+    Type: String
+    Default: true
+    AllowedValues: 
+      - true
+      - false
+    Description: Analysis ScreenShot or not.    
   BlackListProcess: 
     Type: String
     Default: "iexplore.exe,MicrosoftEdge.exe"
@@ -64,6 +71,7 @@ Globals:
           BlackListProcess: !Ref BlackListProcess
           TakeScreenShot: !Ref TakeScreenShot
           AnalysisScreenShot: !Ref AnalysisScreenShot
+          DataSaving: !Ref DataSaving
 Conditions: 
   CreateKinesisResources: !Equals [ !Ref EnableRealtimeAnalystics, true ]          
 Resources:

@@ -37,8 +37,7 @@ def lambda_handler(event, context):
     key = f"screenshot/{partition}/id={student_id}/{filename}"
    
     conditions = [
-        ['content-length-range', 0, 524289],
-        {"Content-Type": "image/jpeg"}
+        ['content-length-range', 0, 524289]
     ]
 
     signed_url = s3.generate_presigned_post(Bucket=bucket, Key=key, Conditions=conditions, ExpiresIn=60*2,)

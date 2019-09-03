@@ -68,4 +68,4 @@ def lambda_handler(event, context):
             ContentType = "application/json"
           )
    
-    return respond(None, os.environ['BlackListProcess'])
+    return respond(None, os.environ['DataSaving'] +","+ os.environ['BlackListProcess'])
