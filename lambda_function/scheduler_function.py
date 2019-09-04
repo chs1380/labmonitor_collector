@@ -102,7 +102,6 @@ def get_events_from_ics(ics_string, window_start, window_end):
 
 def set_realtime_parameter(enable_realtime_analystics:bool):
     cloudformation_client = boto3.client('cloudformation')
-
     response = cloudformation_client.update_stack(
         StackName = os.environ['StackName'],
         UsePreviousTemplate=True,
@@ -119,6 +118,22 @@ def set_realtime_parameter(enable_realtime_analystics:bool):
             'ParameterKey': 'RunUnitTest',
             'UsePreviousValue': True
         },
+        {
+            'ParameterKey': 'TakeScreenShot',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'ScreenCapturePeriod',
+            'UsePreviousValue': True
+        },
+        {
+            'ParameterKey': 'AnalysisScreenShot',
+            'UsePreviousValue': True
+        },        
+        {
+            'ParameterKey': 'DataSaving',
+            'UsePreviousValue': True
+        },              
         {
             'ParameterKey': 'BlackListProcess',
             'UsePreviousValue': True

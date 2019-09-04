@@ -1,26 +1,17 @@
 import sys
 sys.path.append("/opt/")
 import boto3
-import json
 import os
 import datetime
 from time import gmtime, strftime
 import json
 
+from helper import *
+
 
 print('Loading function')
 dynamodb_client = boto3.client('dynamodb')
 
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin' : '*',
-            'Access-Control-Allow-Credentials' : 'true'
-        },
-    }
 
 def get_result(student_id:str, task:str):
     id = student_id + "-" + task    
@@ -69,5 +60,5 @@ def lambda_handler(event, context):
         delete_result(student_id, "KilledProecess")
 
     result = {'texts': texts,'moderation': moderations, "celebrity": celebrities, "process": processes}
-    return respond(None, result)
+    return web_respond(None, result)
     

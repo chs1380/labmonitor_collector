@@ -5,20 +5,12 @@ import json
 import os
 import datetime
 
+from helper import *
 
 print('Loading function')
 s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
 kinesis = boto3.client('kinesis')
-
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-    }
 
 
 def lambda_handler(event, context):

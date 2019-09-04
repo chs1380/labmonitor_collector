@@ -6,6 +6,8 @@ import os
 import subprocess
 import tarfile,shutil
 
+from helper import *
+
 print('Loading function')
 s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
@@ -121,14 +123,4 @@ def run_unit_test(body):
     print(f'python -m unittest tests/' + segment[2] + "/test_"+ segment[3])
     return subprocess.getoutput(f'python -m unittest tests/' + segment[2] + "/test_"+ segment[3])
             
-            
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-    }
-
 

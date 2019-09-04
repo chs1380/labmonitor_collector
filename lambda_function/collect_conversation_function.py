@@ -6,23 +6,13 @@ import os
 import datetime
 import urllib
 
+from helper import *
 
 print('Loading function')
 s3 = boto3.client('s3')
 comprehend = boto3.client('comprehend')
 dynamodb = boto3.resource('dynamodb')
 
-
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin' : '*',
-            'Access-Control-Allow-Credentials' : 'true'
-        },
-    }
 
 def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
     id = f"{student_id}-{task}-{suffix}"
@@ -53,5 +43,5 @@ def lambda_handler(event, context):
     data = {'text': text , "sentiment": sentiment_response}
     save_to_dyanmodb(student_id, "Sentiment", "Sentiment", suffix, data)
 
-    return respond(None, [student_id,text])
+    return web_respond(None, [student_id,text])
     

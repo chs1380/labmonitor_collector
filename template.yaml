@@ -23,6 +23,10 @@ Parameters:
       - true
       - false
     Description: Take ScreenShot or not.
+  ScreenCapturePeriod:
+    Type: Number
+    Default: 60
+    Description: The number of seconds between each ScreenShot.
   AnalysisScreenShot:
     Type: String
     Default: false
@@ -70,6 +74,7 @@ Globals:
           RunUnitTest: !Ref RunUnitTest
           BlackListProcess: !Ref BlackListProcess
           TakeScreenShot: !Ref TakeScreenShot
+          ScreenCapturePeriod: !Ref ScreenCapturePeriod
           AnalysisScreenShot: !Ref AnalysisScreenShot
           DataSaving: !Ref DataSaving
 Conditions: 

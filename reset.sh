@@ -27,3 +27,9 @@ aws dynamodb scan --table-name $TABLE_NAME --attributes-to-get "$KEY" \
   tr "\t" "\n" | \
   xargs -t -I keyvalue aws dynamodb delete-item --table-name $TABLE_NAME \
   --key "{\"$KEY\": {\"S\": \"keyvalue\"}}" --region $REGION
+  
+  
+for lg in $(aws logs describe-log-groups --query "logGroups[?logGroupName | contains(@, '$STACK_NAME')].logGroupName" --output text); do
+    echo "$lg";
+    aws logs delete-log-group --log-group-name "$lg";
+done;

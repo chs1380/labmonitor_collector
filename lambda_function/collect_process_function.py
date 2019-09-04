@@ -5,6 +5,7 @@ import json
 import os
 import datetime
 
+from helper import *
 
 print('Loading function')
 s3 = boto3.client('s3')
@@ -23,15 +24,6 @@ def save_to_dyanmodb(student_id:str, task:str, key:str, suffix:str, data):
     db_response = table.put_item(
        Item=item
     )
-
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-    }
 
 
 def lambda_handler(event, context):

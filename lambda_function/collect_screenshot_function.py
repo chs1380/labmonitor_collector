@@ -5,20 +5,11 @@ import json
 import os
 import datetime
 
+from helper import *
 
 print('Loading function')
 s3 = boto3.client('s3')
 apigateway = boto3.client('apigateway')
-
-
-def respond(err, res=None):
-    return {
-        'statusCode': '400' if err else '200',
-        'body': err.message if err else json.dumps(res),
-        'headers': {
-            'Content-Type': 'application/json',
-        }
-    }
 
 
 def lambda_handler(event, context):
@@ -41,5 +32,5 @@ def lambda_handler(event, context):
     ]
 
     signed_url = s3.generate_presigned_post(Bucket=bucket, Key=key, Conditions=conditions, ExpiresIn=60*2,)
-    return respond(None, signed_url)
+    return respond(None, {"screen_capture_period":os.environ['ScreenCapturePeriod'], "signed_url":signed_url})
     
