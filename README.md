@@ -24,3 +24,7 @@ To generate API for your class, you need to update Source.csv and run python api
 To delete all API Key for your stack, python api_key_genertator/delete_key.py
 Delete stack with cleanup.sh.
 
+
+## AWS Cloud9「Preferences」->「Python Support」->「Custom Code Formatter」##
+yapf -i "$file"
+
