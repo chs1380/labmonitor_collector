@@ -1,6 +1,5 @@
 # Change to default Python3
-sudo mv /usr/bin/python /usr/bin/python2
-sudo ln -s /usr/bin/python3 /usr/bin/python
+alias python='python3'
 python --version
 # Install Code Formatter for Python and you need to set AWS Cloud9「Preferences」->「Python Support」->「Custom Code Formatter」
 # yapf -i "$file"
